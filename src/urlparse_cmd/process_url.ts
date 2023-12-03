@@ -17,6 +17,8 @@ class MetricScoreResults {
     bus_factor: number = 0;
     maintainer: number = 0;
     license: number = 0;
+    pinned_frac: number = 0;
+    reviewed_pull_frac: number = 0;
     clone_path: string = '';
 
     constructor (url: string) {
@@ -55,7 +57,7 @@ class MetricScoreResults {
     }
 
     calc_net_score() {
-        this.net_score = (this.license) * (this.bus_factor * 0.40 + 0.25 * (this.correctness + this.maintainer) + 0.1 * this.ramp_up)
+        this.net_score = (this.license) * (0.25*this.bus_factor + 0.17*(this.correctness + this.maintainer) + 0.11*this.ramp_up + 0.15*(this.pinned_frac + this.reviewed_pull_frac))
     }
 
     print_scores() {
@@ -130,6 +132,8 @@ export default async function get_metric_scores(filename: string) {
                         url_metrics.license = scores.getLicense()
                         url_metrics.maintainer = await scores.getResponsiveness();
                         url_metrics.correctness = scores.getCorrectness();
+                        url_metrics.pinned_frac = scores.getPinnedDependenciesFraction();
+                        url_metrics.reviewed_pull_frac = scores.getCodeReviewFraction();
                         
                         //Once all 5 scores are calculated, update net score using our formula
                         //If any errors occur within the subscores, we just set them to 0
@@ -171,6 +175,8 @@ export default async function get_metric_scores(filename: string) {
                     url_metrics.license = scores.getLicense();
                     url_metrics.maintainer = await scores.getResponsiveness();
                     url_metrics.correctness = scores.getCorrectness();
+                    url_metrics.pinned_frac = scores.getPinnedDependenciesFraction();
+                    url_metrics.reviewed_pull_frac = scores.getCodeReviewFraction();
                     url_metrics.calc_net_score()
                     logger.debug(`Finished calculating score for ${url_list[i]}`)
 

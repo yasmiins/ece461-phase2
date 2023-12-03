@@ -25,25 +25,21 @@ export class DependencyPinningCalculator {
     }
 
     /**
-     * Calculates the fraction of dependencies that are pinned to at least a specific major+minor version.
-     * @param {string} targetVersion - The target major+minor version (e.g., '2.3').
+     * Calculates the fraction of dependencies that are pinned (have any version specified).
      * @returns {Promise<number>} The fraction of dependencies.
      */
-    async calcPinnedDependenciesFraction(targetVersion: string): Promise<number> {
+    async calcPinnedDependenciesFraction(): Promise<number> {
         try {
             const dependencies = await this.fetchDependencies();
 
-            // Filter dependencies that satisfy the pinning condition
+            // Filter dependencies that have any version specified
             const pinnedDependencies = dependencies.filter((dep: any) => {
                 // Assuming the dependency version is available as 'version' property
                 // You may need to adjust this based on the actual structure of your dependency data
-                const depVersion = dep.version || '0.0.0';
-                const depMajorMinorVersion = depVersion.split('.').slice(0, 2).join('.');
-
-                return depMajorMinorVersion === targetVersion;
+                return dep.version !== undefined && dep.version !== null && dep.version !== '';
             });
 
-            // Calculate the fraction of dependencies that satisfy the pinning condition
+            // Calculate the fraction of dependencies that have any version specified
             const pinnedDependenciesFraction = pinnedDependencies.length / dependencies.length;
 
             return pinnedDependenciesFraction || 1.0; // If no dependencies, return 1.0
@@ -54,13 +50,13 @@ export class DependencyPinningCalculator {
     }
 
     /**
-     * Calculates the total dependency pinning score based on the fraction of dependencies that satisfy the pinning condition.
-     * @param {number} pinnedDependenciesFraction - The fraction of dependencies that satisfy the pinning condition.
+     * Calculates the total dependency pinning score based on the fraction of dependencies that have any version specified.
+     * @param {number} pinnedDependenciesFraction - The fraction of dependencies that have any version specified.
      * @returns {number} The total dependency pinning score.
      */
     totalDependencyPinningScore(pinnedDependenciesFraction: number): number {
         logger.info("Successfully calculated dependency pinning score");
-        // You can customize the weights based on your specific criteria
         return pinnedDependenciesFraction;
     }
 }
+

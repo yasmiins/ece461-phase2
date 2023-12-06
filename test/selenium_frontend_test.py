@@ -1,70 +1,117 @@
-from selenium import webdriver
-from selenium.webdriver.common.by import By
+# Import testing functions
 from test_functions import *
 
 # Initialize Selenium WebDriver
-options = webdriver.ChromeOptions()
-options.add_experimental_option('excludeSwitches', ['enable-logging'])
-options.add_argument("--headless")
-driver = webdriver.Chrome(options=options)
+driver = initWebDriver('chrome')
 
 # Open React application
 driver.get("http://localhost:3000")
 
-# Test Case 1: Check if the app title is correct
-# Wait for element with class 'App' to become present
-#waitForElementByClass(driver, "App")
+'''     Test 1: Search Tab     '''
+try:
+    # Test 1.1: Find search tab button and click it
+    searchTabXPath = "//*[@id='root']/div/div[1]/button[2]"
+    searchTab = driver.find_element(By.XPATH, searchTabXPath)
+    searchTab.click()
 
-# Find element with class 'App'
-app_text = findElementText(driver, "App", "React Selenium Example")
+    headerXPath = "//*[@id='root']/div/div[2]/div[1]/div/h1"
+    headerInfo = driver.find_element(By.XPATH, headerXPath).text
+    if (headerInfo != 'Search'):
+        raise ValueError(f"'{headerInfo}' != 'Search'")
 
-# Check if title is correct
-print("")
-if (app_text == "React Selenium Example"):
-    print(f"Test Case 1 Passed - Title is '{app_text}'")
+    # Test 1.2: Using the search query
+    searchQueryXPath = "//*[@id='root']/div/div[2]/div[1]/div/form/input"
+    searchQuery = driver.find_element(By.XPATH, searchQueryXPath)
+    searchQuery.send_keys("Package")
+
+    # Test 1.3: Click the "Use Regex Search" button
+    regBtnXPath = "//*[@id='root']/div/div[2]/div[1]/div/div/label/input"
+    regexButton = driver.find_element(By.XPATH, regBtnXPath)
+    regexButton.click()
+except ValueError as vErr:
+    print(f"Test 1 Failed - Value Error: {vErr}")
+except Exception as e:
+    print(f"Test 1 Failed - Error: {e}")
 else:
-    print("Test Case 1 Failed - Incorrect Title")
+    print("Test 1 Passed")
 
 
-# Test Case 2: Input two numbers, add them, and check the result
-# Locate both inputs and submit button
-num1_input = driver.find_element(By.XPATH, "//label[text()='Number 1:']/input")
-num2_input = driver.find_element(By.XPATH, "//label[text()='Number 2:']/input")
-add_button = driver.find_element(By.XPATH, "//button[text()='Add Numbers']")
+'''     Test 2: Directory Tab     '''
+try:
+    # Test 2.1: Find directory tab button and click it
+    directoryTabXPath = "//*[@id='root']/div/div[1]/button[3]"
+    directoryTab = driver.find_element(By.XPATH, directoryTabXPath)
+    directoryTab.click()
 
-# Send keys and submit
-num1_input.send_keys("10")
-num2_input.send_keys("5")
-add_button.click()
-
-# Check if result is correct
-result_sum = driver.find_element(By.XPATH, "//div[contains(text(), 'Sum:')]").text
-if ("15" in result_sum):
-    print(f"Test Case 2 Passed - {result_sum}")
+    directoryHeaderXPath = "//*[@id='root']/div/div[2]/div[1]/div/h1"
+    directoryHeader = driver.find_element(By.XPATH, directoryHeaderXPath).text
+    if (directoryHeader != 'Directory'):
+        raise ValueError(f"'{directoryHeader}' != 'Directory'")
+except ValueError as vErr:
+    print(f"Test 2 Failed - Value Error: {vErr}")
 else:
-    print("Test Case 2 Failed - result != 15")
+    print("Test 2 Passed")
 
 
-# Test Case 3: Check if the result is updated after changing the numbers
-# Clear inputs and send new keys
-num1_input.clear()
-num1_input.send_keys("20")
-num2_input.clear()
-num2_input.send_keys("7")
+'''     Test 3: Upload Tab     '''
+try:
+    # Test 3.1: Find upload tab button and click it
+    uploadTabXPath = "//*[@id='root']/div/div[1]/button[4]"
+    uploadTab = driver.find_element(By.XPATH, uploadTabXPath)
+    uploadTab.click()
 
-# Submit
-add_button.click()
+    uploadHeaderXPath = "//*[@id='root']/div/div[2]/div[1]/div/h1"
+    uploadHeader = driver.find_element(By.XPATH, uploadHeaderXPath).text
+    if (uploadHeader != 'Upload'):
+        raise ValueError(f"'{uploadHeader}' != 'Upload'")
+    
+    # Test 3.2: Enter text into the 3 text fields
+    
 
-# Check if result is correct
-result_sum = driver.find_element(By.XPATH, "//div[contains(text(), 'Sum:')]").text
-if ("27" in result_sum):
-    print(f"Test Case 3 Passed - {result_sum}")
+except ValueError as vErr:
+    print(f"Test 3 Failed - Value Error: {vErr}")
+except Exception as e:
+    print(f"Test 3 Failed - Error: {e}")
 else:
-    print(f"Test Case 3 Failed - {result_sum}")
+    print("Test 3 Passed")
+
+
+'''     Test 4: Help Tab     '''
+try:
+    # Test 4.1: Find help tab button and click it
+    helpTabXPath = "//*[@id='root']/div/div[1]/button[5]"
+    helpTab = driver.find_element(By.XPATH, helpTabXPath)
+    helpTab.click()
+
+    helpHeaderXPath = "//*[@id='root']/div/div[2]/div[1]/div/h1"
+    helpHeader = driver.find_element(By.XPATH, helpHeaderXPath).text
+    if (helpHeader != 'Help'):
+        raise ValueError(f"'{helpHeader}' != 'Help'")
+except ValueError as vErr:
+    print(f"Test 4 Failed - Value Error: {vErr}")
+else:
+    print("Test 4 Passed")
+
+
+'''     Test 5: Home Tab     '''
+try:
+    # Test 5.1: Find home tab button and click it
+    homeTabXPath = "//*[@id='root']/div/div[1]/button[1]"
+    homeTab = driver.find_element(By.XPATH, homeTabXPath)
+    homeTab.click()
+
+    homeHeaderXPath = "//*[@id='root']/div/div[2]/div[1]/div/h1"
+    homeHeader = driver.find_element(By.XPATH, homeHeaderXPath).text
+    if (homeHeader != 'Home Page'):
+        raise ValueError(f"'{homeHeader}' != 'Home Page'")
+except ValueError as vErr:
+    print(f"Test 5 Failed - Value Error: {vErr}")
+else:
+    print("Test 5 Passed")
 
 
 # Wait for user input before closing the browser
-input("\nPress Enter to close browser")
+input("Press Enter to close browser")
 
 # Close the browser
 driver.close()

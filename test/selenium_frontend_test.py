@@ -66,7 +66,15 @@ try:
         raise ValueError(f"'{uploadHeader}' != 'Upload'")
     
     # Test 3.2: Enter text into the 3 text fields
-    
+    uploadTextIDXPath = "//*[@id='root']/div/div[2]/div[1]/div/div[1]/input"
+    uploadTextID = driver.find_element(By.XPATH, uploadTextIDXPath)
+    uploadTextID.send_keys("n")
+    uploadTextNameXPath = "//*[@id='root']/div/div[2]/div[1]/div/div[2]/input"
+    uploadTextName = driver.find_element(By.XPATH, uploadTextNameXPath)
+    uploadTextName.send_keys("p")
+    uploadTextVersionXPath = "//*[@id='root']/div/div[2]/div[1]/div/div[3]/input"
+    uploadTextVersion = driver.find_element(By.XPATH, uploadTextVersionXPath)
+    uploadTextVersion.send_keys("m")
 
 except ValueError as vErr:
     print(f"Test 3 Failed - Value Error: {vErr}")
@@ -81,14 +89,19 @@ try:
     # Test 4.1: Find help tab button and click it
     helpTabXPath = "//*[@id='root']/div/div[1]/button[5]"
     helpTab = driver.find_element(By.XPATH, helpTabXPath)
+    ''' Figure this error out '''
+    WebDriverWait(driver, 10).until(EC.element_to_be_clickable((By.XPATH, helpTabXPath)))
     helpTab.click()
 
     helpHeaderXPath = "//*[@id='root']/div/div[2]/div[1]/div/h1"
     helpHeader = driver.find_element(By.XPATH, helpHeaderXPath).text
     if (helpHeader != 'Help'):
         raise ValueError(f"'{helpHeader}' != 'Help'")
+
 except ValueError as vErr:
     print(f"Test 4 Failed - Value Error: {vErr}")
+except Exception as e:
+    print(f"Test 4 Failed - Error: {e}")
 else:
     print("Test 4 Passed")
 
@@ -106,6 +119,8 @@ try:
         raise ValueError(f"'{homeHeader}' != 'Home Page'")
 except ValueError as vErr:
     print(f"Test 5 Failed - Value Error: {vErr}")
+except Exception as e:
+    print(f"Test 5 Failed - Error: {e}")
 else:
     print("Test 5 Passed")
 

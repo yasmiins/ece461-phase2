@@ -10,7 +10,7 @@ def initWebDriver(browser):
     if (browser == 'chrome'):
         options = webdriver.ChromeOptions()
         options.add_experimental_option('excludeSwitches', ['enable-logging'])
-        options.add_argument('--headless')
+        #options.add_argument('--headless')
         options.set_capability("browserVersion", "117")
         options.add_argument('--log-level=3')
         driver = webdriver.Chrome(options=options)
@@ -51,4 +51,12 @@ def findElementText(driver, className, specificText=None):
     
     except Exception as e:
         print(f"Failed to find class {className} or obtain it's text: {e}")
+        driver.quit()
+
+# Wait for element with class 'App' to become present
+def waitForElementByXPath(driver, xpath):
+    try:
+        WebDriverWait(driver, 5).until(EC.element_to_be_clickable((By.XPATH, xpath)))
+    except Exception as e:
+        print(f"Failed to wait for element: {e}")
         driver.quit()

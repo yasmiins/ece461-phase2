@@ -6,11 +6,8 @@ import { TopButton, LargeButton } from '../Buttons/ButtonComponent';
 import '../Buttons/ButtonComponent.css';
 
 const Upload = () => {
-  const [packageName, setPackageName] = useState('');
-  const [packageVersion, setPackageVersion] = useState('');
-  const [packageContent, setPackageContent] = useState('');
-  const [packageID, setPackageID] = useState('');
-  const [packageURL, setURL] = useState('');
+  const [packageContent, setPackageContent] = useState(null);
+  const [packageURL, setURL] = useState(undefined);
   const [uploadResult, setUploadResult] = useState(null);
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -24,19 +21,9 @@ const Upload = () => {
       // Prepare package data based on the selected option
       const packageData = useContent
         ? { 
-            metadata: {
-                Name: packageName, 
-                Version: packageVersion, 
-                ID: packageID, 
-            },
             Content: packageContent 
         }
         : { 
-            metadata: {
-                Name: packageName, 
-                Version: packageVersion, 
-                ID: packageID,
-            }, 
             URL: packageURL
         };
 
@@ -60,18 +47,6 @@ const Upload = () => {
     <Layout>
       <div style={{ textAlign: 'center' }}>
         <h1>Upload</h1>
-        <div>
-          <label>Package ID: </label>
-          <input type="text" value={packageID} onChange={(e) => setPackageID(e.target.value)} />
-        </div>
-        <div>
-          <label>Package Name: </label>
-          <input type="text" value={packageName} onChange={(e) => setPackageName(e.target.value)} />
-        </div>
-        <div>
-          <label>Package Version: </label>
-          <input type="text" value={packageVersion} onChange={(e) => setPackageVersion(e.target.value)} />
-        </div>
 
         {/* Toggle between Content and URL */}
         <div>

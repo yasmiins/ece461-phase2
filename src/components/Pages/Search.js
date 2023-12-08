@@ -19,13 +19,32 @@ const Search = () => {
 
   const handleSearchSubmit = async (event) => {
     event.preventDefault();
-
-    // Replace this with your actual search logic that fetches or computes results
-    const results = await performSearch(searchQuery, useRegex);
-
-    // Update the state with the search results
-    setSearchResults(results);
+  
+    // Basic input validation
+    if (typeof searchQuery !== 'string') {
+      console.error('Invalid search query type');
+      return;
+    }
+    // Continue with the search logic
+    try {
+      if (useRegex) {
+        console.log('Regex Search');
+        const results = await api.regexSearch(searchQuery);
+        setSearchResults(results);
+      } else {
+        const packageQueries = [
+          {
+            Name: searchQuery
+          }
+        ];
+        const results = await api.searchPackages(packageQueries, null);
+        setSearchResults(results);
+      }
+    } catch (error) {
+      console.error('Error during search:', error.message);
+    }
   };
+  
 
   const handleButtonClick = async (resultId, buttonType) => {
     try {

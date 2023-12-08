@@ -5,31 +5,32 @@ import api from '../api'; // Adjust the path based on your project structure
 import Package from '../Package'; // Import the Package component
 
 const Directory = () => {
-    const [packageIds, setPackageIds] = useState(['node_core_test_id', 'readmeio123', 'winston123']);
-    const [packages, setPackages] = useState([]);
-    const [loading, setLoading] = useState(false);
-  
-    const fetchPackages = async () => {
-      try {
-        setLoading(true);
-        const packageDetailsPromises = packageIds.map(async (packageId) => {
-          const packageDetails = await api.getPackage(packageId);
-          return { packageId, packageDetails };
-        });
-  
-        const packages = await Promise.all(packageDetailsPromises);
-        setPackages(packages);
-      } catch (error) {
-        console.error('Error fetching packages:', error.message);
-      } finally {
-        setLoading(false);
-      }
-    };
+  const [packages, setPackages] = useState([]);
+  const [loading, setLoading] = useState(false);
+
+  const fetchPackages = async () => {
+    try {
+      setLoading(true);
+      // Call searchPackages with parameter '*'
+      const packageQuery = [
+        {
+          Name: '*'
+        }
+      ]
+      console.log(packageQuery);
+      const searchResult = await api.searchPackages(packageQuery, null);
+      setPackages(searchResult);
+    } catch (error) {
+      console.error('Error fetching packages:', error.message);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    // Fetch a single package when the component mounts
+    // Fetch all packages when the component mounts
     fetchPackages();
-  }, [packageIds]); // Empty dependency array to fetch only once when the component mounts
+  }, []); // Empty dependency array to fetch only once when the component mounts
 
   const handleButtonClick = async (resultId, buttonType) => {
     try {
@@ -69,8 +70,8 @@ const Directory = () => {
 
         {/* Display the Package components for each package */}
         {packages.map((packageItem) => (
-          <div key={packageItem.packageId}>
-            <Package ID={packageItem.packageId} result={packageItem.packageDetails} onButtonClick={handleButtonClick} />
+          <div key={packageItem.ID}>
+            <Package ID={packageItem.ID} result={packageItem} onButtonClick={handleButtonClick} />
           </div>
         ))}
 

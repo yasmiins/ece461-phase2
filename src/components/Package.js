@@ -100,15 +100,9 @@ const Package = ({ ID, result, onButtonClick }) => {
 
     return (
         <div style={{ border: '1px solid #ccc', borderRadius: '8px', padding: '10px', margin: '10px 0' }}>
-            <h1>Package Name: {result.metadata.Name}</h1>
-            <h2>
-                Package URL:
-                <a href={result.data.URL} target="_blank" rel="noopener noreferrer">
-                    {result.data.URL}
-                </a>
-            </h2>
-            <h2>Package ID: {result.metadata.ID}</h2>
-            <h2>Version: {result.metadata.Version}</h2>
+            <h1>Package Name: {result.Name}</h1>           
+            <h2>Package ID: {result.ID}</h2>
+            <h2>Version: {result.Version}</h2>
             {/* Display the package scores if available */}
             {packageScores !== null && (
                 <div>

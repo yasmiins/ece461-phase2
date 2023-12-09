@@ -10,7 +10,7 @@ const InfoPage = () => {
         <h1>Info Page</h1>
       </div>
       {/* Add content specific to the home page */}
-  <div class="container">
+  <div className="container">
   <h1>Introduction</h1>
   <p>Welcome to our API documentation. Our system provides a robust solution for managing npm packages, integrating with AWS services for scalability and reliability. Our RESTful API enables users to perform CRUD operations on packages, extend metrics, ingest public npm packages, search for packages, and reset the system to its default state.</p>
 
@@ -50,4 +50,3 @@ const InfoPage = () => {
 };
 
 export default InfoPage;
-

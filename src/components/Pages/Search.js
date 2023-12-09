@@ -25,51 +25,64 @@ const Search = () => {
       console.error('Invalid search query type');
       return;
     }
+  
     // Continue with the search logic
     try {
+      let results;
       if (useRegex) {
         console.log('Regex Search');
-        const results = await api.regexSearch(searchQuery);
-        setSearchResults(results);
+        results = await api.regexSearch(searchQuery);
       } else {
         const packageQueries = [
           {
             Name: searchQuery
           }
         ];
-        const results = await api.searchPackages(packageQueries, null);
-        setSearchResults(results);
+        results = await api.searchPackages(packageQueries, null);
       }
+  
+      // Adjust the structure of the search results to fit the Package component's expectations
+      const adjustedResults = await Promise.all(
+        results.map(async (result) => ({
+        metadata: {
+          ID: result.ID,
+          Name: result.Name,
+          Version: result.Version
+          // Add other metadata properties as needed
+        },
+        data: {
+          Content: (await api.getPackage(result.ID)).data.Content,
+        }
+      }))
+      );
+      console.log('SEARCH',adjustedResults)
+      setSearchResults(adjustedResults);
     } catch (error) {
       console.error('Error during search:', error.message);
     }
   };
-  
+
 
   const handleButtonClick = async (resultId, buttonType) => {
     try {
       switch (buttonType) {
         case 'Update':
           // Handle Update button click
-          alert(`Update button clicked for result with ID ${resultId}`);
+          console.log(`Update button clicked for package ${resultId}`);
           // Example: Fetch the package details and perform an update
-          const packageDetails = await api.getPackage(resultId);
-          // Perform your update logic based on packageDetails
           break;
 
         case 'Rate':
           // Handle Rate button click
-          alert(`Rate button clicked for result with ID ${resultId}`);
+          console.log(`Rate button clicked for package ${resultId}`);
           // Example: Rate the package
-          const ratingResult = await api.ratePackage(resultId, 'exampleFilename.txt');
           // Handle the rating result
           break;
 
         case 'Download':
           // Handle Download button click
-          alert(`Download button clicked for result with ID ${resultId}`);
+          console.log(`Download button clicked for package ${resultId}`);
           // Example: Download the package
-          const downloadResult = await api.downloadPackage(resultId);
           // Handle the download result
           break;
 
@@ -111,35 +124,19 @@ const Search = () => {
         </div>
 
         {/* Display search results using Package */}
-        {searchResults && (
+        {searchResults && searchResults.length > 0 ? (
           <div style={{ marginTop: '20px', textAlign: 'center' }}>
             <h2>{`Search Results for "${searchQuery}"`}</h2>
-            {searchResults.map((result, index) => (
-              <Package key={index} result={result} onButtonClick={handleButtonClick}/>
+            {searchResults.map((result) => (
+              <Package key={result.metadata.ID} ID={result.metadata.ID} result={result} onButtonClick={handleButtonClick} />
             ))}
           </div>
+        ) : (
+          <p>No results found.</p>
         )}
       </div>
     </Layout>
   );
-};
-
-// Perform search logic, replace with your actual implementation
-const performSearch = async (query, useRegex) => {
-  // Simulate an asynchronous search operation
-  // Replace this with your actual logic (e.g., API call, data fetching)
-  return new Promise((resolve) => {
-    setTimeout(() => {
-      const results = [
-        { name: 'Result 1', id: 1 },
-        { name: 'Result 2', id: 2 },
-        { name: 'Result 3', id: 3 },
-        { name: 'Result 4', id: 4 },
-        { name: 'Result 5', id: 5 },
-      ];
-      resolve(results);
-    }, 1000);
-  });
 };
 
 export default Search;

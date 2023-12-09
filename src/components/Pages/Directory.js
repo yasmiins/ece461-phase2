@@ -19,7 +19,13 @@ const Directory = () => {
       ]
       console.log(packageQuery);
       const searchResult = await api.searchPackages(packageQuery, null);
-      setPackages(searchResult);
+      const packages_list = [];
+      for(let i = 0; i < searchResult.length; i++)
+      {
+        packages_list[i] = await api.getPackage(searchResult[i].ID);
+        console.log(packages_list[i]);
+      }
+      setPackages(packages_list);
     } catch (error) {
       console.error('Error fetching packages:', error.message);
     } finally {
@@ -70,8 +76,8 @@ const Directory = () => {
 
         {/* Display the Package components for each package */}
         {packages.map((packageItem) => (
-          <div key={packageItem.ID}>
-            <Package ID={packageItem.ID} result={packageItem} onButtonClick={handleButtonClick} />
+          <div key={packageItem.metadata.ID}>
+            <Package ID={packageItem.metadata.ID} result={packageItem} onButtonClick={handleButtonClick} />
           </div>
         ))}
 

@@ -1,4 +1,4 @@
-import { DependencyPinningCalculator } from '../urlparse_cmd/metric_calc/DependencyPinningCalculator';
+import { DependencyPinningCalculator } from '../urlparse_cmd/metric_calc/pinned_dependencies_frac';
 import { GithubAPIService } from '../urlparse_cmd/metric_calc/git_API_call';
 
 // Mock GithubAPIService to avoid actual API calls during tests
@@ -10,7 +10,7 @@ describe('DependencyPinningCalculator', () => {
 
   beforeEach(() => {
     // Create a mock instance of GithubAPIService
-    githubAPI = new GithubAPIService();
+    githubAPI = new GithubAPIService('dummy', 'dummy');
     // Create an instance of DependencyPinningCalculator with the mock GithubAPIService
     calculator = new DependencyPinningCalculator(githubAPI);
   });
@@ -23,7 +23,7 @@ describe('DependencyPinningCalculator', () => {
   describe('calcPinnedDependenciesFraction', () => {
     it('calculates the fraction of pinned dependencies', async () => {
       // Mock the fetchDependencies method to return a sample list of dependencies
-      githubAPI.fetchAPIdata.mockResolvedValue([
+      (githubAPI.fetchAPIdata as jest.Mock).mockResolvedValue([
         { version: '1.0.0' },
         { version: '2.1.3' },
         { version: '' }, // unpinned dependency
@@ -37,7 +37,7 @@ describe('DependencyPinningCalculator', () => {
 
     it('handles errors and returns -1', async () => {
       // Mock the fetchDependencies method to throw an error
-      githubAPI.fetchAPIdata.mockRejectedValue(new Error('API error'));
+      (githubAPI.fetchAPIdata as jest.Mock).mockRejectedValue(new Error('API error'));
 
       const result = await calculator.calcPinnedDependenciesFraction();
 

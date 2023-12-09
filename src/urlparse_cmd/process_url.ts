@@ -128,8 +128,8 @@ export default async function get_metric_scores(filename: string) : Promise<any>
                         url_metrics.license = scores.getLicense()
                         url_metrics.maintainer = await scores.getResponsiveness();
                         url_metrics.correctness = scores.getCorrectness();
-                        url_metrics.pinned_frac = scores.getPinnedDependenciesFraction();
-                        url_metrics.reviewed_pull_frac = scores.getCodeReviewFraction();
+                        url_metrics.pinned_frac = await scores.getPinnedDependenciesFraction();
+                        url_metrics.reviewed_pull_frac = await scores.getCodeReviewFraction();
                         
                         //Once all 5 scores are calculated, update net score using our formula
                         //If any errors occur within the subscores, we just set them to 0
@@ -172,8 +172,8 @@ export default async function get_metric_scores(filename: string) : Promise<any>
                     url_metrics.license = scores.getLicense();
                     url_metrics.maintainer = await scores.getResponsiveness();
                     url_metrics.correctness = scores.getCorrectness();
-                    url_metrics.pinned_frac = scores.getPinnedDependenciesFraction();
-                    url_metrics.reviewed_pull_frac = scores.getCodeReviewFraction();
+                    url_metrics.pinned_frac = await scores.getPinnedDependenciesFraction();
+                    url_metrics.reviewed_pull_frac = await scores.getCodeReviewFraction();
                     url_metrics.calc_net_score()
                     logger.debug(`Finished calculating score for ${url_list[i]}`)
 

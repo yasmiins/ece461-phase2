@@ -1,4 +1,4 @@
-import { CodeReviewFractionCalculator } from '../urlparse_cmd/metric_calc/CodeReviewFractionCalculator';
+import { CodeReviewFractionCalculator } from '../urlparse_cmd/metric_calc/code_review_frac';
 import { GithubAPIService } from '../urlparse_cmd/metric_calc/git_API_call';
 
 // Mock GithubAPIService to avoid actual API calls during tests
@@ -10,7 +10,7 @@ describe('CodeReviewFractionCalculator', () => {
 
   beforeEach(() => {
     // Create a mock instance of GithubAPIService
-    githubAPI = new GithubAPIService();
+    githubAPI = new GithubAPIService('dummy', 'dummy');
     // Create an instance of CodeReviewFractionCalculator with the mock GithubAPIService
     calculator = new CodeReviewFractionCalculator(githubAPI);
   });
@@ -23,7 +23,7 @@ describe('CodeReviewFractionCalculator', () => {
   describe('calcCodeReviewFraction', () => {
     it('calculates the fraction of code reviewed in pull requests', async () => {
       // Mock the fetchPullRequests method to return a sample list of pull requests
-      githubAPI.fetchAPIdata.mockResolvedValue([
+      (githubAPI.fetchAPIdata as jest.Mock).mockResolvedValue([
         { review_comments: 3, additions: 10, deletions: 5 },
         { review_comments: 0, additions: 8, deletions: 2 }, // not reviewed
         { review_comments: 2, additions: 15, deletions: 7 },
@@ -37,7 +37,7 @@ describe('CodeReviewFractionCalculator', () => {
 
     it('handles errors and returns -1', async () => {
       // Mock the fetchPullRequests method to throw an error
-      githubAPI.fetchAPIdata.mockRejectedValue(new Error('API error'));
+      (githubAPI.fetchAPIdata as jest.Mock).mockRejectedValue(new Error('API error'));
 
       const result = await calculator.calcCodeReviewFraction();
 

@@ -3,6 +3,10 @@ from test_functions import *
 
 # Initialize Selenium WebDriver
 driver = initWebDriver('chrome')
+#driver = initWebDriver('firefox')
+#driver = initWebDriver('edge')
+#driver = initWebDriver('safari')
+
 
 # Open React application
 driver.get("http://localhost:3000")

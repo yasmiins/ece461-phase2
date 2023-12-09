@@ -52,14 +52,14 @@ const Package = ({ ID, result, onButtonClick }) => {
                 const packageDetails = await api.getPackage(ID);
                 console.log(packageDetails);
                 const packageUpdated = await api.updatePackage(ID, packageDetails);
-                alert(packageUpdated);
+                console.log(packageUpdated);
                 // Implement your logic here
                 setUpdateLoading(false); // Update loading state after completion
                 break;
 
             case 'Rate':
                 // Handle Rate button click
-                console.log('Rate button clicked');
+                console.log('Rate button clicked for ID:', ID);
                 const ratingResult = await api.ratePackage(ID);
                 console.log(ratingResult);
                 // Update the package scores in the state
@@ -76,13 +76,13 @@ const Package = ({ ID, result, onButtonClick }) => {
                     // Try to save the content as a zip file
                     try {
                         const zip = new JSZip();
-                        zip.file('content.txt', content);
+                        zip.file(`${result.metadata.Name}-${result.metadata.Version}.txt`, content);
 
                         // Generate a blob from the zip content
                         const zipBlob = await zip.generateAsync({ type: 'blob' });
 
                         // Save the blob as a file
-                        saveAs(zipBlob, 'content.zip');
+                        saveAs(zipBlob, `${result.metadata.Name}-${result.metadata.Version}.zip`);
                     } catch (error) {
                         console.error('Error creating or saving the zip file:', error.message);
                     }
@@ -100,9 +100,9 @@ const Package = ({ ID, result, onButtonClick }) => {
 
     return (
         <div style={{ border: '1px solid #ccc', borderRadius: '8px', padding: '10px', margin: '10px 0' }}>
-            <h1>Package Name: {result.Name}</h1>           
-            <h2>Package ID: {result.ID}</h2>
-            <h2>Version: {result.Version}</h2>
+            <h1>Package Name: {result.metadata.Name}</h1>           
+            <h2>Package ID: {result.metadata.ID}</h2>
+            <h2>Version: {result.metadata.Version}</h2>
             {/* Display the package scores if available */}
             {packageScores !== null && (
                 <div>

@@ -11,7 +11,13 @@ const logger = require('./dist/logger.js').default;
 const cors = require('cors');
 const app = express();
 const shortid = require('shortid');
+const rateLimit = require('express-rate-limit');
 
+const limiter = rateLimit({
+    windowMs: 15 * 60 * 1000, // 15 minutes
+    max: 100, // limit each IP to 100 requests per windowMs
+    message: "Too many requests, please try again later."
+});
 
 // CORS configuration for development and production
 const corsOptions = {
@@ -47,7 +53,7 @@ const dynamoDB = new AWS.DynamoDB.DocumentClient();
  * TODO: Implement rating check
  * TODO: Error handling for missing json
  */
-app.post('/package', async (req, res) => {
+app.post('/package', limiter, async (req, res) => {
     logger.debug("POST /package endpoint called");
     logger.debug("Request body: ", req.body);
 

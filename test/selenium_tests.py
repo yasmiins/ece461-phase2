@@ -11,6 +11,7 @@ driver = initWebDriver('chrome')
 # Open React application
 driver.get("http://localhost:3000")
 
+
 '''     Test 1: Search Tab     '''
 try:
     # Test 1.1: Find search tab button and click it
@@ -32,12 +33,11 @@ try:
     regBtnXPath = "//*[@id='root']/div/div[2]/div[1]/div/div/label/input"
     regexButton = driver.find_element(By.XPATH, regBtnXPath)
     regexButton.click()
+
 except ValueError as vErr:
     print(f"Test 1 Failed - Value Error: {vErr}")
 except Exception as e:
     print(f"Test 1 Failed - Error: {e}")
-else:
-    print("Test 1 Passed")
 
 
 '''     Test 2: Directory Tab     '''
@@ -51,10 +51,9 @@ try:
     directoryHeader = driver.find_element(By.XPATH, directoryHeaderXPath).text
     if (directoryHeader != 'Directory'):
         raise ValueError(f"'{directoryHeader}' != 'Directory'")
+    
 except ValueError as vErr:
     print(f"Test 2 Failed - Value Error: {vErr}")
-else:
-    print("Test 2 Passed")
 
 
 '''     Test 3: Upload Tab     '''
@@ -84,8 +83,6 @@ except ValueError as vErr:
     print(f"Test 3 Failed - Value Error: {vErr}")
 except Exception as e:
     print(f"Test 3 Failed - Error: {e}")
-else:
-    print("Test 3 Passed")
 
 
 '''     Test 4: Help Tab     '''
@@ -106,8 +103,6 @@ except ValueError as vErr:
     print(f"Test 4 Failed - Value Error: {vErr}")
 except Exception as e:
     print(f"Test 4 Failed - Error: {e}")
-else:
-    print("Test 4 Passed")
 
 
 '''     Test 5: Home Tab     '''
@@ -121,12 +116,11 @@ try:
     homeHeader = driver.find_element(By.XPATH, homeHeaderXPath).text
     if (homeHeader != 'Home Page'):
         raise ValueError(f"'{homeHeader}' != 'Home Page'")
+    
 except ValueError as vErr:
     print(f"Test 5 Failed - Value Error: {vErr}")
 except Exception as e:
     print(f"Test 5 Failed - Error: {e}")
-else:
-    print("Test 5 Passed")
 
 
 # Wait for user input before closing the browser

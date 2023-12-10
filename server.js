@@ -347,7 +347,7 @@ app.put('/package/:id', async (req, res) => {
         await s3.upload(updateParams).promise();
         logger.debug("Package updated in S3");
 
-        // update the readme content
+        // update the readme content (probably might need fixing)
         if (data.Readme) {
             const readmeS3Key = `readmes/${metadata.Name}-${metadata.Version}.md`;
             const readmeUpdateParams = {
@@ -559,21 +559,30 @@ app.post('/package/byRegEx', async (req, res) => {
         // List all packages from DynamoDB
         const scanParams = {
             TableName: "S3Metadata",
-            ProjectionExpression: "id"
+            ProjectionExpression: "id, name, version" 
         };
         const allPackages = await dynamoDB.scan(scanParams).promise();
 
         const matchedPackages = [];
 
         for (const pkg of allPackages.Items) {
-            const packageData = await fetchPackageData(pkg.id);
-            const readme = extractReadmeFromZip(packageData.data.Content);
+
+            // Construct the S3 key for the README file
+            const readmeS3Key = `readmes/${pkg.name}-${pkg.version}.md`;
+
+            // Fetch the README file from S3
+            const fetchedReadme = await s3.getObject({
+                Bucket: '461zips',
+                Key: readmeS3Key
+            }).promise();
+
+            let readmeContent = fetchedReadme.Body.toString('utf-8');
 
             // Check regex against both README and package name
-            if (regex.test(readme) || regex.test(packageData.metadata.name)) {
+            if (regex.test(readmeContent) || regex.test(pkg.name)) {
                 matchedPackages.push({
-                    Version: packageData.metadata.version,
-                    Name: packageData.metadata.name
+                    Version: pkg.version,
+                    Name: pkg.name
                 });
             }
         }

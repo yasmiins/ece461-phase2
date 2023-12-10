@@ -62,18 +62,19 @@ class MetricScoreResults {
 
     print_scores() {
         //TAs advised to technically not do it like this but whatever its fine
-        console.log(`{"URL":"${this.url}", "NET_SCORE":${parseFloat(this.net_score.toFixed(5))}, "RAMP_UP_SCORE":${parseFloat(this.ramp_up.toFixed(5))}, "CORRECTNESS_SCORE":${parseFloat(this.correctness.toFixed(5))}, "BUS_FACTOR_SCORE":${parseFloat(this.bus_factor.toFixed(5))}, "RESPONSIVE_MAINTAINER_SCORE":${parseFloat(this.maintainer.toFixed(5))}, "LICENSE_SCORE":${parseFloat(this.license.toFixed(5))}}`) //Not sure if doing it like this is ok?
+        //console.log(`{"URL":"${this.url}", "NET_SCORE":${parseFloat(this.net_score.toFixed(5))}, "RAMP_UP_SCORE":${parseFloat(this.ramp_up.toFixed(5))}, "CORRECTNESS_SCORE":${parseFloat(this.correctness.toFixed(5))}, "BUS_FACTOR_SCORE":${parseFloat(this.bus_factor.toFixed(5))}, "RESPONSIVE_MAINTAINER_SCORE":${parseFloat(this.maintainer.toFixed(5))}, "LICENSE_SCORE":${parseFloat(this.license.toFixed(5))}}`) //Not sure if doing it like this is ok?
     }
 }
 
 
 
-export default async function get_metric_scores(filename: string) {
+export default async function get_metric_scores(filename: string) : Promise<any> {
 
     // if(filename.charAt(0) != "/") { //Check if the input is an actual filepath
     //     throw new Error("Invalid command given, command must be one of ./run (install | test | URL_FILE)")
     // }
-
+    let allScores = [];
+    
     //Step 1: Open file
     try {
         var url_file = fs.readFileSync(filename);
@@ -132,8 +133,8 @@ export default async function get_metric_scores(filename: string) {
                         url_metrics.license = scores.getLicense()
                         url_metrics.maintainer = await scores.getResponsiveness();
                         url_metrics.correctness = scores.getCorrectness();
-                        url_metrics.pinned_frac = scores.getPinnedDependenciesFraction();
-                        url_metrics.reviewed_pull_frac = scores.getCodeReviewFraction();
+                        url_metrics.pinned_frac = await scores.getPinnedDependenciesFraction();
+                        url_metrics.reviewed_pull_frac = await scores.getCodeReviewFraction();
                         
                         //Once all 5 scores are calculated, update net score using our formula
                         //If any errors occur within the subscores, we just set them to 0
@@ -194,9 +195,24 @@ export default async function get_metric_scores(filename: string) {
             logger.error("Invalid link, link must be of the form https://www.npmjs.com/package/{name} or https://www.github.com/{repo}/{owner}")
         }
 
-        url_metrics.print_scores(); //Prints the NDJSON
+        const score = {
+            "URL": url_metrics.url,
+            "NET_SCORE": parseFloat(url_metrics.net_score.toFixed(5)),
+            "RAMP_UP_SCORE": parseFloat(url_metrics.ramp_up.toFixed(5)),
+            "CORRECTNESS_SCORE": parseFloat(url_metrics.correctness.toFixed(5)),
+            "BUS_FACTOR_SCORE": parseFloat(url_metrics.bus_factor.toFixed(5)),
+            "RESPONSIVE_MAINTAINER_SCORE": parseFloat(url_metrics.maintainer.toFixed(5)),
+            "LICENSE_SCORE": parseFloat(url_metrics.license.toFixed(5)),
+            "PINNED_FRAC_SCORE": parseFloat(url_metrics.pinned_frac.toFixed(5)),
+            "REVIEWED_FRAC_SCORE": parseFloat(url_metrics.reviewed_pull_frac.toFixed(5))
+        };
+        allScores.push(score);
 
     }
+        //url_metrics.print_scores(); //Prints the NDJSON
+    }
+
+    return allScores;
 
 }
 

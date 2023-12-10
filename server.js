@@ -134,6 +134,28 @@ app.post('/package', async (req, res) => {
         const packageId = shortid.generate();
         logger.debug(`Generated unique package ID: ${packageId}`);
 
+        //uploading the readme as a object to the S3 bucket zips in folder readmes
+        const readmeFilePath = path.join(repoPath, 'README.md');
+        let readmeContent;
+        try {
+            readmeContent = fs.readFileSync(readmeFilePath, 'utf8');
+            const readmeS3Params = {
+                Bucket: '461zips',
+                Key: `readmes/${packageName}-${packageVersion}.md`,
+                Body: readmeContent,
+                Metadata: { 'name': packageName, 'version': packageVersion, 'id': packageId }
+            };
+
+            logger.debug("Starting S3 upload for README", { Bucket: readmeS3Params.Bucket, Key: readmeS3Params.Key });
+            await s3.upload(readmeS3Params).promise();
+            logger.debug("README S3 upload successful");
+
+        } catch (readError) {
+            logger.error("Error reading or uploading README.md", { Path: readmeFilePath, Error: readError.message });
+            return res.status(500).send({ message: "Error reading package.json" }); // not sure about the error here
+        }
+        //end of upload as a object
+
         // Create a zip file from the extracted content
         zip = new AdmZip();
         zip.addLocalFolder(repoPath);

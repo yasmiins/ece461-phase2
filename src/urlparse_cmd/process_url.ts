@@ -210,10 +210,7 @@ export default async function get_metric_scores(filename: string) : Promise<any>
 
     }
         //url_metrics.print_scores(); //Prints the NDJSON
-    }
-
-    return allScores;
-
+     return allScores;
 }
 
 function npm_to_github(pkg_name: string) {

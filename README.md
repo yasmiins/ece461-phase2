@@ -68,3 +68,24 @@ This section has moved here: [https://facebook.github.io/create-react-app/docs/d
 ### `npm run build` fails to minify
 
 This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+
+# Selenium Testing
+
+## Requirements
+
+### Install Selenium
+
+In order to install selenium, you need to use pip. Pip comes with Python version 3.4 and later by default. If you do not have Python installed, use this link to [install Python](https://www.python.org/downloads/).
+
+Go to your terminal and use the pip command: `pip install selenium`
+
+You can check if selenium is installed by typing in the command `pip list` which will show a list of all the packages you have installed using pip. If one of the packages listed is named "selenium" then you have correctly installed selenium.
+
+If the install command does not work, you can try any of the commands below:
+`pip3 install selenium`
+`python -m pip install selenium`
+`python3 -m pip install selenium`
+
+## Running Selenium Tests
+
+In your terminal, navigate to the folder where you have stored the project and make sure to start the React application (instructions above). Once it is up and running, enter into your terminal `python3 ./test/selenium_tests.py`

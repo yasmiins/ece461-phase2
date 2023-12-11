@@ -1,4 +1,5 @@
 import { Octokit } from "octokit";
+import { Buffer } from 'buffer';
 import logger from "../../logger";
 
 export class GithubAPIService {
@@ -18,7 +19,7 @@ export class GithubAPIService {
     }
     async fetchAPIdata(feature: string) {
 
-        if(feature == '') { //To get the big repo object, we just do get /repos/owner/repo
+        if (feature == '') { //To get the big repo object, we just do get /repos/owner/repo
             try {
                 logger.debug(`Calling GitHub API at endpoint /repos/${this.owner}/${this.repo}`)
                 const response = await this.octokit.request(`GET /repos/{owner}/{repo}`, { //Need this seperate because it doesn't have the slash at the end
@@ -59,5 +60,33 @@ export class GithubAPIService {
         }
 
 
+    }
+
+    async fetchFileContent(filePath: string): Promise<string | null> {
+        try {
+            logger.debug(`Calling GitHub API at endpoint /repos/${this.owner}/${this.repo}/contents/${filePath}`);
+
+            const response = await this.octokit.request(`GET /repos/{owner}/{repo}/contents/{path}`, {
+                owner: this.owner,
+                repo: this.repo,
+                path: filePath,
+                headers: {
+                    'X-GitHub-Api-Version': '2022-11-28'
+                }
+            });
+
+            // Check if the response is successful and contains content
+            if (response.status === 200 && Array.isArray(response.data) && response.data.length > 0 && response.data[0].content) {
+                // Decode base64-encoded content
+                const decodedContent = Buffer.from(response.data[0].content, 'base64').toString('utf-8');
+                return decodedContent;
+            }
+
+            logger.warn(`Failed to retrieve content from /repos/${this.owner}/${this.repo}/contents/${filePath}`);
+            return null;
+        } catch (error) {
+            logger.error(`Error fetching file content: ${error}`);
+            return null;
+        }
     }
 }

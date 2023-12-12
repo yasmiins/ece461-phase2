@@ -538,7 +538,6 @@ app.delete('/reset', async (req, res) => {
 });
 
 // Define the API endpoint for searching by RegEx
-// this is extremely inefficient. finding a better way might involve adjusting other endpoints
 app.post('/package/byRegEx', async (req, res) => {
     try {
         const {RegEx} = req.body;
@@ -568,24 +567,12 @@ app.post('/package/byRegEx', async (req, res) => {
         };
 
         const allPackages = await dynamoDB.scan(scanParams).promise();
-        console.log("Number of packages retrieved:", allPackages.Items.length);
-
-
-        console.log("testing")
-
-
 
         const matchedPackages = [];
 
         for (const pkg of allPackages.Items) {
             try {
                 // Check if package metadata is properly structured
-                console.log("Package data:", pkg);
-
-        
-        
-                console.log(`Processing package: ${pkg.name}-${pkg.version}`);
-        
                 // Construct the S3 key for the README file
                 const readmeS3Key = `readmes/${pkg.name}-${pkg.version}.md`;
         
@@ -597,7 +584,7 @@ app.post('/package/byRegEx', async (req, res) => {
                         Key: readmeS3Key
                     }).promise();
                 } catch (s3Error) {
-                    console.error("Error fetching README from S3:", s3Error);
+                    logger.error("Error fetching README from S3:", s3Error);
                     continue;
                 }
         
@@ -611,7 +598,7 @@ app.post('/package/byRegEx', async (req, res) => {
                     });
                 }
             } catch (error) {
-                console.error("Error processing package:", error);
+                logger.error("Error processing package:", error);
 
             }
         }

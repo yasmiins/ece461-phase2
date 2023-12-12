@@ -574,6 +574,7 @@ app.post('/package/byRegEx', async (req, res) => {
         console.log("testing")
 
 
+
         const matchedPackages = [];
 
         for (const pkg of allPackages.Items) {
@@ -611,6 +612,7 @@ app.post('/package/byRegEx', async (req, res) => {
                 }
             } catch (error) {
                 console.error("Error processing package:", error);
+
             }
         }
         

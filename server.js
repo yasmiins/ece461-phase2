@@ -121,6 +121,7 @@ const dynamoDB = new AWS.DynamoDB.DocumentClient();
         // Extract package name and version from package.json
 
 
+
         packageName = packageJson.name;
         packageVersion = packageJson.version;
         logger.debug(`Extracted package info: Name - ${packageName}, Version - ${packageVersion}`);
@@ -211,6 +212,7 @@ const dynamoDB = new AWS.DynamoDB.DocumentClient();
             logger.error("Error reading or uploading .md file", { Path: mdEntry.entryName, Error: readError.message });
             return res.status(500).send({ message: "Error reading package.json" }); // Update this error message as needed
         }
+
 
         // Create a zip file from the extracted content
         zip = new AdmZip();

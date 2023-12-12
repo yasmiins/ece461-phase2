@@ -700,19 +700,6 @@ app.post('/package/byRegEx', async (req, res) => {
 });
 
 
-function extractReadmeFromZip(encodedZipContent) {
-    const zipContent = Buffer.from(encodedZipContent, 'base64');
-    const zip = new AdmZip(zipContent);
-    const zipEntries = zip.getEntries();
-
-    const readmeEntry = zipEntries.find(entry => /readme\.md/i.test(entry.entryName));
-
-    if (readmeEntry) {
-        return readmeEntry.getData().toString('utf8');
-    } else {
-        return ''; // No README found, return an empty string
-    }
-}
 
 async function emptyS3Bucket() {
     const listedObjects = await s3.listObjectsV2({Bucket: '461zips'}).promise();

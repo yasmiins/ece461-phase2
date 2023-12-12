@@ -136,6 +136,7 @@ const dynamoDB = new AWS.DynamoDB.DocumentClient();
         const packageId = shortid.generate();
         logger.debug(`Generated unique package ID: ${packageId}`);
 
+
         // adding rating
         if(req.body.URL){
 
@@ -179,6 +180,7 @@ const dynamoDB = new AWS.DynamoDB.DocumentClient();
 
         // Find the first .md file instead of specifically a README.md
         const mdFiles = glob.sync(path.join(repoPath, '**/*.md')); // Use glob to search for .md files
+
         if (mdFiles.length === 0) {
             logger.error(".md file not found in the repository");
             return res.status(500).send({ message: ".md file not found in the repository" });

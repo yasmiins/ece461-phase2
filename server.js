@@ -112,7 +112,8 @@ const dynamoDB = new AWS.DynamoDB.DocumentClient();
                 });
                 return res.status(500).send({message: "Error reading package.json"});
             }
-            
+ 
+
         } else {
             logger.warn("Invalid request: No package content or URL provided");
             return res.status(400).send({message: "No package content or URL provided"});
@@ -128,6 +129,7 @@ const dynamoDB = new AWS.DynamoDB.DocumentClient();
 
         // Check if the package already exists
         const packageExists = await checkIfPackageExists(packageName, packageVersion);
+
         if (packageExists) {
             logger.warn(`Package already exists: ${packageName}, Version: ${packageVersion}`);
             return res.status(409).send({message: "Package already exists"});
@@ -182,8 +184,7 @@ const dynamoDB = new AWS.DynamoDB.DocumentClient();
         const mdFiles = glob.sync(path.join(repoPath, '**/*.md')); // Use glob to search for .md files
 
         if (mdFiles.length === 0) {
-            logger.error(".md file not found in the repository");
-            return res.status(500).send({ message: ".md file not found in the repository" });
+            logger.warn(".md file not found in the repository");
         }
      
 
@@ -194,9 +195,10 @@ const dynamoDB = new AWS.DynamoDB.DocumentClient();
         try {
             mdContent = fs.readFileSync(mdFilePath, 'utf8');
         } catch (readError) {
-            logger.error("Error reading .md file", { Path: mdFilePath, Error: readError.message });
-            return res.status(500).send({ message: "Error reading .md file" });
+            logger.warn("Error reading .md file, default content will be used", { Path: mdFilePath, Error: readError.message });
+            mdContent = ""; // Default content or some placeholder text
         }
+ 
 
         try {
             const mdS3Params = {
@@ -293,7 +295,6 @@ async function checkIfPackageExists(packageName, packageVersion) {
     try {
         logger.debug("Executing DynamoDB Scan with params:", scanParams);
         const result = await dynamoDB.scan(scanParams).promise();
-        logger.debug("DynamoDB Scan result:", result);
         return result.Items.length > 0;
     } catch (error) {
         logger.error("Error querying DynamoDB", {Error: error.message, Params: scanParams});
@@ -432,7 +433,7 @@ app.put('/package/:id', async (req, res) => {
             };
 
             await s3.upload(readmeUpdateParams).promise();
-            console.log("README updated in S3")
+
             logger.debug("README updated in S3");
         } else {
             logger.warn("No .md file found in the package");
@@ -576,7 +577,15 @@ app.delete('/reset', async (req, res) => {
         const listedObjects = await s3.listObjectsV2(listParams).promise();
 
         logger.debug("Number of objects in the bucket: " + listedObjects.Contents.length);
-        if (listedObjects.Contents.length === 0) return;
+        if (listedObjects.Contents.length === 0) {
+            logger.debug("S3 bucket is already empty. No objects to delete.");
+            // Also check if DynamoDB is empty and return response accordingly
+            const scanResult = await dynamoDB.scan({TableName: 'S3Metadata'}).promise();
+            if (scanResult.Items.length === 0) {
+                logger.debug("DynamoDB is also empty. No entries to delete.");
+                return res.status(200).send({message: "Registry is already reset."});
+            }
+        }
 
         const deleteParams = {
             Bucket: '461zips',
@@ -669,7 +678,7 @@ app.post('/package/byRegEx', async (req, res) => {
                         Key: readmeS3Key
                     }).promise();
                 } catch (s3Error) {
-                    console.error("Error fetching README from S3:", s3Error);
+                    logger.error("Error fetching README from S3:", s3Error);
                     continue;
                 }
         
@@ -683,7 +692,7 @@ app.post('/package/byRegEx', async (req, res) => {
                     });
                 }
             } catch (error) {
-                console.error("Error processing package:", error);
+                logger.error("Error processing package:", error);
 
             }
         }

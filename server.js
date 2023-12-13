@@ -1,4 +1,4 @@
-require('dotenv').config();
+// require('dotenv').config();
 const simpleGit = require('simple-git');
 const os = require('os');
 const AdmZip = require('adm-zip');
@@ -433,6 +433,7 @@ app.put('/package/:id', async (req, res) => {
             };
 
             await s3.upload(readmeUpdateParams).promise();
+
             logger.debug("README updated in S3");
         } else {
             logger.warn("No .md file found in the package");

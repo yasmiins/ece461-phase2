@@ -576,7 +576,15 @@ app.delete('/reset', async (req, res) => {
         const listedObjects = await s3.listObjectsV2(listParams).promise();
 
         logger.debug("Number of objects in the bucket: " + listedObjects.Contents.length);
-        if (listedObjects.Contents.length === 0) return;
+        if (listedObjects.Contents.length === 0) {
+            logger.debug("S3 bucket is already empty. No objects to delete.");
+            // Also check if DynamoDB is empty and return response accordingly
+            const scanResult = await dynamoDB.scan({TableName: 'S3Metadata'}).promise();
+            if (scanResult.Items.length === 0) {
+                logger.debug("DynamoDB is also empty. No entries to delete.");
+                return res.status(200).send({message: "Registry is already reset."});
+            }
+        }
 
         const deleteParams = {
             Bucket: '461zips',

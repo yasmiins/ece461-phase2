@@ -1,4 +1,4 @@
-// require('dotenv').config();
+require('dotenv').config();
 const simpleGit = require('simple-git');
 const os = require('os');
 const AdmZip = require('adm-zip');
@@ -112,7 +112,8 @@ const dynamoDB = new AWS.DynamoDB.DocumentClient();
                 });
                 return res.status(500).send({message: "Error reading package.json"});
             }
-            
+ 
+
         } else {
             logger.warn("Invalid request: No package content or URL provided");
             return res.status(400).send({message: "No package content or URL provided"});
@@ -128,6 +129,7 @@ const dynamoDB = new AWS.DynamoDB.DocumentClient();
 
         // Check if the package already exists
         const packageExists = await checkIfPackageExists(packageName, packageVersion);
+
         if (packageExists) {
             logger.warn(`Package already exists: ${packageName}, Version: ${packageVersion}`);
             return res.status(409).send({message: "Package already exists"});
@@ -182,8 +184,7 @@ const dynamoDB = new AWS.DynamoDB.DocumentClient();
         const mdFiles = glob.sync(path.join(repoPath, '**/*.md')); // Use glob to search for .md files
 
         if (mdFiles.length === 0) {
-            logger.error(".md file not found in the repository");
-            return res.status(500).send({ message: ".md file not found in the repository" });
+            logger.warn(".md file not found in the repository");
         }
      
 
@@ -194,9 +195,10 @@ const dynamoDB = new AWS.DynamoDB.DocumentClient();
         try {
             mdContent = fs.readFileSync(mdFilePath, 'utf8');
         } catch (readError) {
-            logger.error("Error reading .md file", { Path: mdFilePath, Error: readError.message });
-            return res.status(500).send({ message: "Error reading .md file" });
+            logger.warn("Error reading .md file, default content will be used", { Path: mdFilePath, Error: readError.message });
+            mdContent = ""; // Default content or some placeholder text
         }
+ 
 
         try {
             const mdS3Params = {
@@ -293,7 +295,6 @@ async function checkIfPackageExists(packageName, packageVersion) {
     try {
         logger.debug("Executing DynamoDB Scan with params:", scanParams);
         const result = await dynamoDB.scan(scanParams).promise();
-        logger.debug("DynamoDB Scan result:", result);
         return result.Items.length > 0;
     } catch (error) {
         logger.error("Error querying DynamoDB", {Error: error.message, Params: scanParams});
@@ -432,7 +433,6 @@ app.put('/package/:id', async (req, res) => {
             };
 
             await s3.upload(readmeUpdateParams).promise();
-            console.log("README updated in S3")
             logger.debug("README updated in S3");
         } else {
             logger.warn("No .md file found in the package");
@@ -669,7 +669,7 @@ app.post('/package/byRegEx', async (req, res) => {
                         Key: readmeS3Key
                     }).promise();
                 } catch (s3Error) {
-                    console.error("Error fetching README from S3:", s3Error);
+                    logger.error("Error fetching README from S3:", s3Error);
                     continue;
                 }
         
@@ -683,7 +683,7 @@ app.post('/package/byRegEx', async (req, res) => {
                     });
                 }
             } catch (error) {
-                console.error("Error processing package:", error);
+                logger.error("Error processing package:", error);
 
             }
         }

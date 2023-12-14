@@ -1,4 +1,4 @@
-require('dotenv').config();
+// require('dotenv').config();
 const simpleGit = require('simple-git');
 const os = require('os');
 const AdmZip = require('adm-zip');
@@ -364,20 +364,11 @@ app.put('/package/:id', async (req, res) => {
         const packageId = req.params.id;
         const {metadata, data} = req.body;
 
-
-        if (!metadata || !data) {
-            logger.warn("Missing metadata or data in request");
-            return res.status(400).send({ message: "Invalid request data: Metadata and data are required" });
+        // Validate request body
+        if (!metadata || !data || !metadata.Name || !metadata.Version || !metadata.ID) {
+            logger.warn("Invalid request data");
+            return res.status(400).send({message: "Invalid request data"});
         }
-
-        const requiredMetadataFields = ["Name", "Version", "ID"];
-        for (const field of requiredMetadataFields) {
-            if (!metadata[field]) {
-                logger.warn(`Invalid request data: Missing ${field}`);
-                return res.status(400).send({ message: `Invalid request data: Missing ${field}` });
-            }
-        }
-
 
         // Check if package ID matches with metadata ID
         if (packageId !== metadata.ID) {
@@ -397,6 +388,11 @@ app.put('/package/:id', async (req, res) => {
             return res.status(404).send({message: 'Package does not exist.'});
         }
 
+        // Adding a check for name and version
+        if (result.Item.name !== metadata.Name || result.Item.version !== metadata.Version) {
+            logger.warn("Package name or version mismatch");
+            return res.status(400).send({message: "Package name or version mismatch"});
+        }
 
         logger.debug("Package exists. Updating...");
         // Update package in S3
@@ -623,83 +619,81 @@ app.delete('/reset', async (req, res) => {
 });
 
 // Define the API endpoint for searching by RegEx
+app.post('/package/byRegEx', async (req, res) => {
+    try {
+        const { RegEx } = req.body;
 
-// app.post('/package/byRegEx', async (req, res) => {
-//     try {
-//         const { RegEx } = req.body;
+        // Validate the regex input
+        if (!RegEx) {
+            return res.status(400).send({ message: "Regex pattern is required" });
+        }
 
-//         // Validate the regex input
-//         if (!RegEx) {
-//             return res.status(400).send({ message: "Regex pattern is required" });
-//         }
+        let regex;
+        try {
+            regex = new RegExp(RegEx);
+        } catch (error) {
+            return res.status(400).send({ message: "Invalid regex pattern" });
+        }
 
-//         let regex;
-//         try {
-//             regex = new RegExp(RegEx);
-//         } catch (error) {
-//             return res.status(400).send({ message: "Invalid regex pattern" });
-//         }
+        logger.debug(`Searching packages with regex: ${RegEx}`);
 
-//         logger.debug(`Searching packages with regex: ${RegEx}`);
+        // List all packages from DynamoDB
+        let scanParams = {
+            TableName: "S3Metadata",
+            ProjectionExpression: "#n, #v",
+            ExpressionAttributeNames: {
+                "#n": "name",
+                "#v": "version"
+            }
+        };
 
-//         // List all packages from DynamoDB
-//         let scanParams = {
-//             TableName: "S3Metadata",
-//             ProjectionExpression: "#n, #v",
-//             ExpressionAttributeNames: {
-//                 "#n": "name",
-//                 "#v": "version"
-//             }
-//         };
+        let allPackages;
+        try {
+            allPackages = await dynamoDB.scan(scanParams).promise();
+            logger.debug("Number of packages retrieved: " + allPackages.Items.length);
+        } catch (dbError) {
+            logger.error('Error fetching from DynamoDB:', dbError);
+            return res.status(500).send({ message: 'Error fetching package data' });
+        }
 
-//         let allPackages;
-//         try {
-//             allPackages = await dynamoDB.scan(scanParams).promise();
-//             logger.debug("Number of packages retrieved: " + allPackages.Items.length);
-//         } catch (dbError) {
-//             logger.error('Error fetching from DynamoDB:', dbError);
-//             return res.status(500).send({ message: 'Error fetching package data' });
-//         }
-
-//         const matchedPackages = [];
-//         for (const pkg of allPackages.Items) {
-//             logger.debug(`Processing package: ${pkg.name}-${pkg.version}`);
-
-
-//             const readmeS3Key = `readme/${pkg.name}-${pkg.version}.md`;
+        const matchedPackages = [];
+        for (const pkg of allPackages.Items) {
+            logger.debug(`Processing package: ${pkg.name}-${pkg.version}`);
 
 
-//             let readmeContent;
-//             try {
-//                 const fetchedReadme = await s3.getObject({
-//                     Bucket: '461zips',
-//                     Key: readmeS3Key
-//                 }).promise();
+            const readmeS3Key = `readme/${pkg.name}-${pkg.version}.md`;
 
-//                 readmeContent = fetchedReadme.Body.toString('utf-8');
-//                 logger.debug("README content fetched for: " + readmeS3Key);
-//             } catch (s3Error) {
-//                 logger.error("Error fetching README from S3 for", readmeS3Key, s3Error);
-//                 continue; 
-//             }
 
-//             if (regex.test(readmeContent) || regex.test(pkg.name)) {
-//                 matchedPackages.push({ Version: pkg.version, Name: pkg.name });
-//                 logger.debug(`Package matched: ${pkg.name}-${pkg.version}`);
-//             }
-//         }
+            let readmeContent;
+            try {
+                const fetchedReadme = await s3.getObject({
+                    Bucket: '461zips',
+                    Key: readmeS3Key
+                }).promise();
 
-//         if (matchedPackages.length === 0) {
-//             return res.status(404).send({ message: "No package found under this regex" });
-//         }
+                readmeContent = fetchedReadme.Body.toString('utf-8');
+                logger.debug("README content fetched for: " + readmeS3Key);
+            } catch (s3Error) {
+                logger.error("Error fetching README from S3 for", readmeS3Key, s3Error);
+                continue; 
+            }
 
-//         res.status(200).json(matchedPackages);
-//     } catch (error) {
-//         logger.error('Error in POST /package/byRegEx:', error);
-//         res.status(500).send({ message: 'Internal Server Error' });
-//     }
-// });
+            if (regex.test(readmeContent) || regex.test(pkg.name)) {
+                matchedPackages.push({ Version: pkg.version, Name: pkg.name });
+                logger.debug(`Package matched: ${pkg.name}-${pkg.version}`);
+            }
+        }
 
+        if (matchedPackages.length === 0) {
+            return res.status(404).send({ message: "No package found under this regex" });
+        }
+
+        res.status(200).json(matchedPackages);
+    } catch (error) {
+        logger.error('Error in POST /package/byRegEx:', error);
+        res.status(500).send({ message: 'Internal Server Error' });
+    }
+});
 
 
 

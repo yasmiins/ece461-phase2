@@ -370,7 +370,7 @@ app.put('/package/:id', async (req, res) => {
             return res.status(400).send({ message: "Invalid request data: Metadata and data are required" });
         }
 
-        const requiredMetadataFields = ["Name", "Version", "ID"];
+        const requiredMetadataFields = ["name", "version", "iD"];
         for (const field of requiredMetadataFields) {
             if (!metadata[field]) {
                 logger.warn(`Invalid request data: Missing ${field}`);

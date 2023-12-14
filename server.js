@@ -1,4 +1,4 @@
-require('dotenv').config();
+// require('dotenv').config();
 const simpleGit = require('simple-git');
 const os = require('os');
 const AdmZip = require('adm-zip');
@@ -42,6 +42,17 @@ AWS.config.update({
 });
 const s3 = new AWS.S3();
 const dynamoDB = new AWS.DynamoDB.DocumentClient();
+
+/**
+ * Define the API endpoint for authenticate packages and return error
+ *
+ */
+app.put('/authenticate', (req, res) => {
+    logger.debug("Received request to authenticate user");
+
+    // Since the system does not support authentication, return HTTP 501
+    res.status(501).send({ message: "This system does not support authentication." });
+});
 
 
 /**
@@ -370,6 +381,13 @@ app.put('/package/:id', async (req, res) => {
             return res.status(400).send({ message: "Invalid request data: Metadata and data are required" });
         }
 
+        // Enhanced validation
+        if (!metadata || !data || typeof metadata.Name !== 'string' || typeof metadata.Version !== 'string' || typeof metadata.ID !== 'string') {
+            logger.warn("Invalid request data: ", { metadata, data });
+            return res.status(400).send({ message: "Invalid request data: Metadata and data are required with proper formats" });
+        }
+
+        //metadata check
         const requiredMetadataFields = ["Name", "Version", "ID"];
         for (const field of requiredMetadataFields) {
             if (!metadata[field]) {

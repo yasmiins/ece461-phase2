@@ -660,7 +660,9 @@ app.post('/package/byRegEx', async (req, res) => {
         for (const pkg of allPackages.Items) {
             logger.debug(`Processing package: ${pkg.name}-${pkg.version}`);
 
+
             const readmeS3Key = `readme/${pkg.name}-${pkg.version}.md`;
+
 
             let readmeContent;
             try {
@@ -673,7 +675,7 @@ app.post('/package/byRegEx', async (req, res) => {
                 logger.debug("README content fetched for: " + readmeS3Key);
             } catch (s3Error) {
                 logger.error("Error fetching README from S3 for", readmeS3Key, s3Error);
-                continue; // Skip this iteration if README is not fetched
+                continue; 
             }
 
             if (regex.test(readmeContent) || regex.test(pkg.name)) {

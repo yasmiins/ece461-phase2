@@ -13,41 +13,63 @@ export class DependencyPinningCalculator {
      * Fetches dependency data from the GitHub API.
      * @returns {Promise<any>} A promise that resolves with the dependency data.
      */
-    async fetchDependencies() {
+    /**
+     * Fetches dependency data from the GitHub API.
+     * @returns {Promise<any> | Promise<number>} A promise that resolves with the dependency data.
+     */
+    async fetchDependencies(): Promise<any[] | number> {
         try {
-            // Assuming the GitHub API endpoint for fetching dependency information is 'dependencies'
-            const dependencies = await this.githubAPI.fetchAPIdata('dependencies');
-            return dependencies;
+            // Retrieve the contents of the package.json file
+            const packageJsonContent = await this.githubAPI.fetchFileContent('package.json');
+
+            if (!packageJsonContent) {
+                logger.warn("No package.json file found. Returning 0 for dependency pinning score.");
+                return 0;
+            }
+
+            // Parse the JSON content to extract dependency information
+            const packageJson = JSON.parse(packageJsonContent);
+
+            // Assuming dependencies are listed under the 'dependencies' field
+            const dependencies = packageJson.dependencies || {};
+
+            // Convert dependencies object to an array of objects for consistency
+            const dependenciesArray = Object.keys(dependencies).map(name => ({ name, version: dependencies[name] }));
+
+            return dependenciesArray;
         } catch (error) {
-            logger.error(`Error fetching dependencies: ${error}`);
+            logger.error(`Error fetching or parsing package.json: ${error}`);
             return [];
         }
     }
 
     /**
-     * Calculates the fraction of dependencies that are pinned (have any version specified).
-     * @returns {Promise<number>} The fraction of dependencies.
-     */
-    async calcPinnedDependenciesFraction(): Promise<number> {
-        try {
-            const dependencies = await this.fetchDependencies();
+ * Calculates the fraction of dependencies that are pinned (have any version specified).
+ * @returns {Promise<number>} The fraction of dependencies.
+ */
+async calcPinnedDependenciesFraction(): Promise<number> {
+    try {
+        const dependencies = await this.fetchDependencies();
 
-            // Filter dependencies that have any version specified
-            const pinnedDependencies = dependencies.filter((dep: any) => {
-                // Assuming the dependency version is available as 'version' property
-                // You may need to adjust this based on the actual structure of your dependency data
-                return dep.version !== undefined && dep.version !== null && dep.version !== '';
-            });
+        // Use type assertion to treat 'number' as an empty array
+        const dependenciesArray = dependencies as any[];
 
-            // Calculate the fraction of dependencies that have any version specified
-            const pinnedDependenciesFraction = pinnedDependencies.length / dependencies.length;
+        // Filter dependencies that have any version specified
+        const pinnedDependencies = dependenciesArray.filter((dep: any) => {
+            // Assuming the dependency version is available as 'version' property
+            // You may need to adjust this based on the actual structure of your dependency data
+            return dep.version !== undefined && dep.version !== null && dep.version !== '';
+        });
 
-            return pinnedDependenciesFraction || 1.0; // If no dependencies, return 1.0
-        } catch (error) {
-            logger.error(`Error calculating pinned dependencies fraction: ${error}`);
-            return -1;
-        }
+        // Calculate the fraction of dependencies that have any version specified
+        const pinnedDependenciesFraction = pinnedDependencies.length / dependenciesArray.length;
+
+        return pinnedDependenciesFraction || 1.0; // If no dependencies, return 1.0
+    } catch (error) {
+        logger.error(`Error calculating pinned dependencies fraction: ${error}`);
+        return -1;
     }
+}
 
     /**
      * Calculates the total dependency pinning score based on the fraction of dependencies that have any version specified.

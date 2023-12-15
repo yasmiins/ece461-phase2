@@ -469,12 +469,6 @@ app.put('/package/:id', async (req, res) => {
         }
 
 
-        // Check if package ID matches with metadata ID
-        if (packageId !== metadata.ID) {
-            logger.warn("Package ID mismatch");
-            return res.status(400).send({message: "Package ID mismatch"});
-
-        }
 
         logger.debug("Request body validated. Checking if package exists...")
         // Check if the package exists in DynamoDB

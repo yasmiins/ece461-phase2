@@ -402,7 +402,8 @@ app.get('/package/:id', async (req, res) => {
         // Retrieve object from S3
         const s3Params = {
             Bucket: '461zips',
-            Key: s3Key
+            Key: s3Key, 
+            Body: fileContent
         };
         console.log("2")
 
@@ -410,7 +411,7 @@ app.get('/package/:id', async (req, res) => {
         console.log("3")
 
         const data = await s3.getObject(s3Params).promise();
-        const packageContent = data.Body.toString("base64");
+        const packageContent = data.Body
 
 
         // Extract metadata from S3 object

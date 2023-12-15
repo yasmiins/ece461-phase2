@@ -51,8 +51,8 @@ async calcPinnedDependenciesFraction(): Promise<number> {
     try {
         const dependencies = await this.fetchDependencies();
 
-        // Use type assertion to treat 'number' as an empty array
-        const dependenciesArray = dependencies as any[];
+        // Ensure dependencies is an array
+        const dependenciesArray = Array.isArray(dependencies) ? dependencies : [];
 
         // Filter dependencies that have any version specified
         const pinnedDependencies = dependenciesArray.filter((dep: any) => {

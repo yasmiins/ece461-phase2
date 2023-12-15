@@ -8,7 +8,7 @@ body {
   }
 
   h1, h2 {
-    color: #333;
+    color: #0000FF;
   }
 
   p {
@@ -16,8 +16,8 @@ body {
   }
 
   code {
-    background: #eee;
-    border: 1px solid #999;
+    background: #FFFF00;
+    border: 1px solid #000000;
     padding: 2px 6px;
     border-radius: 4px;
     font-family: 'Courier New', Courier, monospace;
@@ -29,14 +29,15 @@ body {
   }
 
   li {
-    background: #fff;
+    color: #FFFF00;
+    background: #0000FF;
     margin-bottom: 10px;
     padding: 10px;
     border-radius: 4px;
   }
 
   strong {
-    color: #007bff;
+    color: #FFFF00;
   }
 
   .container {

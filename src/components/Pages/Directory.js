@@ -28,6 +28,36 @@ const Directory = () => {
       setPackages(packages_list);
     } catch (error) {
       console.error('Error fetching packages:', error.message);
+
+      /* const packages_list = [
+        {
+          metadata: {
+            ID: 1,
+            Name: 'Example 1',
+            Version: '1.0.0',
+          },
+          // Other properties specific to this package
+        },
+        {
+          metadata: {
+            ID: 2,
+            Name: 'Example 2',
+            Version: '1.0.0',
+          },
+          // Other properties specific to this package
+        },
+        {
+          metadata: {
+            ID: 3,
+            name: 'Example 3',
+            description: '2.2.0',
+          },
+          // Other properties specific to this package
+        },
+
+      ];
+      setPackages(packages_list); */
+
     } finally {
       setLoading(false);
     }

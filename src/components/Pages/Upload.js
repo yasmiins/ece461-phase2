@@ -29,7 +29,6 @@ const Upload = () => {
 
       // Upload package using the API function
       const result = await api.uploadPackage(packageData);
-
       // Update state with the upload result
       setUploadResult(result);
       setError(null);

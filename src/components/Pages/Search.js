@@ -32,6 +32,7 @@ const Search = () => {
       if (useRegex) {
         console.log('Regex Search');
         results = await api.regexSearch(searchQuery);
+        console.log('REGEX RESULTS:',results)
       } else {
         const packageQueries = [
           {

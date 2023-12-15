@@ -1,4 +1,4 @@
-// require('dotenv').config();
+require('dotenv').config();
 const simpleGit = require('simple-git');
 const os = require('os');
 const AdmZip = require('adm-zip');
@@ -451,6 +451,7 @@ app.put('/package/:id', async (req, res) => {
             return res.status(400).send({ message: "Invalid request data: Metadata and data are required" });
         }
 
+
         // Enhanced validation
         if (!metadata || !data || !metadata.Name || !metadata.Version  || !metadata.ID ) {
             logger.warn("Invalid request data: ", { metadata, data });
@@ -458,12 +459,21 @@ app.put('/package/:id', async (req, res) => {
         }
 
         //metadata check
+
         const requiredMetadataFields = ["Name", "Version", "ID"];
         for (const field of requiredMetadataFields) {
             if (!metadata[field]) {
                 logger.warn(`Invalid request data: Missing ${field}`);
                 return res.status(400).send({ message: `Invalid request data: Missing ${field}` });
             }
+        }
+
+
+        // Check if package ID matches with metadata ID
+        if (packageId !== metadata.ID) {
+            logger.warn("Package ID mismatch");
+            return res.status(400).send({message: "Package ID mismatch"});
+
         }
 
         logger.debug("Request body validated. Checking if package exists...")

@@ -410,7 +410,7 @@ app.get('/package/:id', async (req, res) => {
         console.log("3")
 
         const data = await s3.getObject(s3Params).promise();
-        const packageContent = data.Body
+        const packageContent = data.Body.toString('base64')
 
 
         // Extract metadata from S3 object

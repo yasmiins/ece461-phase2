@@ -48,11 +48,11 @@ const Package = ({ ID, result, onButtonClick }) => {
         switch (buttonType) {
             case 'Update':
                 // Handle Update button click
-                console.log('Update button clicked');
+                console.log('Update button clicked for ID:', ID);
                 const packageDetails = await api.getPackage(ID);
-                console.log(packageDetails);
+                console.log('Package Details:', packageDetails);
                 const packageUpdated = await api.updatePackage(ID, packageDetails);
-                console.log(packageUpdated);
+                console.log('Package Updated Message:', packageUpdated);
                 // Implement your logic here
                 setUpdateLoading(false); // Update loading state after completion
                 break;
@@ -61,7 +61,7 @@ const Package = ({ ID, result, onButtonClick }) => {
                 // Handle Rate button click
                 console.log('Rate button clicked for ID:', ID);
                 const ratingResult = await api.ratePackage(ID);
-                console.log(ratingResult);
+                console.log('Rating Result:', ratingResult);
                 // Update the package scores in the state
                 setPackageScores(ratingResult[0]);
                 // Implement your logic here
@@ -76,7 +76,13 @@ const Package = ({ ID, result, onButtonClick }) => {
                     // Try to save the content as a zip file
                     try {
                         const zip = new JSZip();
-                        zip.file(`${result.metadata.Name}-${result.metadata.Version}.txt`, content);
+                        const folderName = `${result.metadata.Name}-${result.metadata.Version}`;
+
+                        // Create a folder in the zip file
+                        const folder = zip.folder(folderName);
+
+                        // Add the content as a binary file inside the folder
+                        folder.file(`${folderName}.bin`, content, { binary: true });
 
                         // Generate a blob from the zip content
                         const zipBlob = await zip.generateAsync({ type: 'blob' });
@@ -100,7 +106,7 @@ const Package = ({ ID, result, onButtonClick }) => {
 
     return (
         <div style={{ border: '1px solid #ccc', borderRadius: '8px', padding: '10px', margin: '10px 0' }}>
-            <h1>Package Name: {result.metadata.Name}</h1>           
+            <h1>Package Name: {result.metadata.Name}</h1>
             <h2>Package ID: {result.metadata.ID}</h2>
             <h2>Version: {result.metadata.Version}</h2>
             {/* Display the package scores if available */}

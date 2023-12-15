@@ -1,5 +1,5 @@
 // api.js
-const BASE_URL = 'http://ec2-18-222-159-163.us-east-2.compute.amazonaws.com';
+const BASE_URL = 'http://ec2-18-216-237-247.us-east-2.compute.amazonaws.com';
 
 const api = {
   uploadPackage: async (packageData) => {

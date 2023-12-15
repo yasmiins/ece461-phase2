@@ -374,7 +374,6 @@ app.put('/package/:id', async (req, res) => {
         logger.info(`Received request to /package/:${req.params.id}`);
         const packageId = req.params.id;
         const {metadata, data} = req.body;
-        let tempDir, repoPath, packageJson, packageName, packageVersion; //
 
         if (!metadata || !data) {
             logger.warn("Missing metadata or data in request");
@@ -382,7 +381,7 @@ app.put('/package/:id', async (req, res) => {
         }
 
         // Enhanced validation
-        if (!metadata || !data || typeof metadata.Name !== 'string' || typeof metadata.Version !== 'string' || typeof metadata.ID !== 'string') {
+        if (!metadata || !data || !metadata.Name || !metadata.Version  || !metadata.ID ) {
             logger.warn("Invalid request data: ", { metadata, data });
             return res.status(400).send({ message: "Invalid request data: Metadata and data are required with proper formats" });
         }
@@ -394,15 +393,6 @@ app.put('/package/:id', async (req, res) => {
                 logger.warn(`Invalid request data: Missing ${field}`);
                 return res.status(400).send({ message: `Invalid request data: Missing ${field}` });
             }
-        }
-
-        
-
-
-        // Check if package ID matches with metadata ID
-        if (packageId !== metadata.ID) {
-            logger.warn("Package ID mismatch");
-            return res.status(400).send({message: "Package ID mismatch"});
         }
 
         logger.debug("Request body validated. Checking if package exists...")
@@ -420,44 +410,7 @@ app.put('/package/:id', async (req, res) => {
 
         logger.debug("Package exists. Updating...");
 
-        //fix for update
 
-        fileContent = Buffer.from(req.body.Content, 'base64');
-        tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'package-'));
-        logger.debug(`Temporary directory created for zip content: ${tempDir}`);
-
-        const zipFilePath = path.join(tempDir, 'package.zip');
-        fs.writeFileSync(zipFilePath, fileContent);
-        logger.debug(`Written base64 content to temporary zip file at: ${zipFilePath}`);
-
-        zip = new AdmZip(zipFilePath);
-        const packageJsonEntry = zip.getEntries().find(entry => entry.entryName.endsWith('package.json'));
-        
-        if (!packageJsonEntry) {
-            return res.status(500).send({ message: "Error reading package.json"});
-        }
-
-        packageJson = JSON.parse(packageJsonEntry.getData().toString('utf8'));
-
-        repoPath = path.join(tempDir, 'repo');
-        zip.extractAllTo(repoPath, true);
-        
-
-
-        
-        logger.debug(`Extracted zip content to temporary repository path: ${repoPath}`);
-        packageName = packageJson.name;
-        packageVersion = packageJson.version;
-        logger.debug(`Extracted package info: Name - ${packageName}, Version - ${packageVersion}`);
-        fs.rmdirSync(tempDir, {recursive: true});
-
-        //fix end
-
-        if (packageName !== metadata.Name) {
-        logger.warn("Package name mismatch");
-        return res.status(400).send({message: "Package name mismatch"});
-        }
-        
         
         // Update package in S3
         const s3Key = `packages/${metadata.Name}-${metadata.Version}.zip`;
@@ -466,8 +419,8 @@ app.put('/package/:id', async (req, res) => {
             Key: s3Key,
             Body: Buffer.from(data.Content, 'base64'),
             Metadata: {
-                'name': packageName, //
-                'version': packageVersion, //
+                'name': metdata.Name, //
+                'version': metadata.Version, //
                 'id': metadata.ID
             }
         };
@@ -490,8 +443,8 @@ app.put('/package/:id', async (req, res) => {
                 Key: readmeS3Key,
                 Body: readmeContent,
                 Metadata: {
-                    'name': packageName, //
-                    'version': packageVersion,//
+                    'name': metdata.Name, //
+                    'version': metadata.Version,//
                     'id': metadata.ID
                 }
             };

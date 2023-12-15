@@ -28,11 +28,8 @@ export class DependencyPinningCalculator {
                 return 0;
             }
 
-            // Parse the JSON content to extract dependency information
-            const packageJson = JSON.parse(packageJsonContent);
-
             // Assuming dependencies are listed under the 'dependencies' field
-            const dependencies = packageJson.dependencies || {};
+            const dependencies = packageJsonContent.dependencies || {};
 
             // Convert dependencies object to an array of objects for consistency
             const dependenciesArray = Object.keys(dependencies).map(name => ({ name, version: dependencies[name] }));

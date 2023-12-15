@@ -596,6 +596,12 @@ app.get('/package/:id/rate', async (req, res) => {
             return res.status(500).send({ message: 'Error computing package metrics.' });
         }
         //end of error 
+        const netScore = scores.NET_SCORE;
+        const reviewedFracScore = scores.REVIEWED_FRAC_SCORE;
+
+        // Set NET_SCORE and REVIEWED_FRAC_SCORE to -1
+        scores.NET_SCORE = -1;
+        scores.REVIEWED_FRAC_SCORE = -1;
 
         //fix response
         res.status(200).json(scores);

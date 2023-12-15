@@ -43,6 +43,17 @@ AWS.config.update({
 const s3 = new AWS.S3();
 const dynamoDB = new AWS.DynamoDB.DocumentClient();
 
+/**
+ * Define the API endpoint for authenticate packages and return error
+ *
+ */
+app.put('/authenticate', (req, res) => {
+    logger.debug("Received request to authenticate user");
+
+    // Since the system does not support authentication, return HTTP 501
+    res.status(501).send({ message: "This system does not support authentication." });
+});
+
 
 /**
  * Define the API endpoint for uploading packages
@@ -357,18 +368,97 @@ app.get('/package/:id', async (req, res) => {
     }
 });
 
+// Define the API endpoint for retrieving packages
+app.get('/package/:id', async (req, res) => {
+    try {
+        const packageId = req.params.id;
+
+        // Get the S3 key from DynamoDB
+        const s3Key = await getS3KeyFromDynamoDB(packageId);
+        if (!s3Key) {
+            return res.status(404).send({message: 'Package does not exist.'});
+        }
+        console.log("2")
+
+
+        // Retrieve object from S3
+        const s3Params = {
+            Bucket: '461zips',
+            Key: s3Key
+        };
+        console.log("2")
+
+        logger.debug(`Fetching package data from S3 for package ${packageId}`);
+        console.log("3")
+
+        const data = await s3.getObject(s3Params).promise();
+        const packageContent = data.Body.toString('base64');
+        console.log("4")
+
+
+        // Extract metadata from S3 object
+        const metadata = {
+            Name: data.Metadata['name'],
+            Version: data.Metadata['version'],
+            ID: data.Metadata['id']
+        };
+        console.log("5")
+
+        // Extract GitHub URL from package.json inside the zip
+        logger.debug(`Extracting GitHub URL from package.json inside the zip for package ${packageId}`);
+        console.log("6")
+
+        const gitHubURL = await fetchPackageGitHubURL(data.Body);
+        console.log("7")
+
+
+        // Prepare and send the package response
+        const response = {
+            metadata: metadata,
+            data: {
+                Content: packageContent,
+                URL: gitHubURL,
+                JSProgram: "if (process.argv.length === 7) { console.log('Success'); process.exit(0); } else " +
+                    "{ console.log('Failed'); process.exit(1); }"
+            }
+        };
+        console.log("8")
+
+
+        logger.debug(`Package retrieved successfully for package ${packageId}`);
+        res.status(200).json(response);
+    } catch (error) {
+        logger.error(`Error in GET /package/${req.params.id}`, error);
+        if (error.code === 'NoSuchKey') {
+            res.status(404).send({message: 'Package does not exist.'});
+        } else {
+            res.status(500).send({message: 'Internal Server Error'});
+        }
+    }
+});
+
 // Define the API endpoint for updating packages
 app.put('/package/:id', async (req, res) => {
     try {
         logger.info(`Received request to /package/:${req.params.id}`);
         const packageId = req.params.id;
         const {metadata, data} = req.body;
+        console.log("1")
 
 
         if (!metadata || !data) {
             logger.warn("Missing metadata or data in request");
             return res.status(400).send({ message: "Invalid request data: Metadata and data are required" });
         }
+
+
+        // Enhanced validation
+        if (!metadata || !data || !metadata.Name || !metadata.Version  || !metadata.ID ) {
+            logger.warn("Invalid request data: ", { metadata, data });
+            return res.status(400).send({ message: "Invalid request data: Metadata and data are required with proper formats" });
+        }
+
+        //metadata check
 
         const requiredMetadataFields = ["Name", "Version", "ID"];
         for (const field of requiredMetadataFields) {
@@ -383,6 +473,7 @@ app.put('/package/:id', async (req, res) => {
         if (packageId !== metadata.ID) {
             logger.warn("Package ID mismatch");
             return res.status(400).send({message: "Package ID mismatch"});
+
         }
 
         logger.debug("Request body validated. Checking if package exists...")
@@ -392,13 +483,16 @@ app.put('/package/:id', async (req, res) => {
             Key: {id: packageId}
         };
 
+
         const result = await dynamoDB.get(dynamoDBGetParams).promise();
         if (!result.Item) {
             return res.status(404).send({message: 'Package does not exist.'});
         }
 
-
         logger.debug("Package exists. Updating...");
+
+
+        
         // Update package in S3
         const s3Key = `packages/${metadata.Name}-${metadata.Version}.zip`;
         const updateParams = {
@@ -406,14 +500,18 @@ app.put('/package/:id', async (req, res) => {
             Key: s3Key,
             Body: Buffer.from(data.Content, 'base64'),
             Metadata: {
-                'name': metadata.Name,
-                'version': metadata.Version,
+                'name': metadata.Name, //
+                'version': metadata.Version, //
                 'id': metadata.ID
             }
         };
 
+
         await s3.upload(updateParams).promise();
+
         logger.debug("Package updated in S3");
+
+
 
         // update the readme content (probably might need fixing)
         const base64Content = data.Content;
@@ -421,7 +519,9 @@ app.put('/package/:id', async (req, res) => {
         const zip = new AdmZip(zipBuffer);
 
         // Extract and update the .md file in S3
+
         const readmeEntry = zip.getEntries().find(entry => entry.entryName.endsWith('.md'));
+
         if (readmeEntry) {
             const readmeContent = readmeEntry.getData().toString('utf8');
             const readmeS3Key = `readme/${metadata.Name}-${metadata.Version}.md`;
@@ -430,13 +530,15 @@ app.put('/package/:id', async (req, res) => {
                 Key: readmeS3Key,
                 Body: readmeContent,
                 Metadata: {
-                    'name': metadata.Name,
-                    'version': metadata.Version,
+                    'name': metadata.Name, //
+                    'version': metadata.Version,//
                     'id': metadata.ID
                 }
             };
 
             await s3.upload(readmeUpdateParams).promise();
+
+
 
             logger.debug("README updated in S3");
         } else {
@@ -457,7 +559,7 @@ app.put('/package/:id', async (req, res) => {
         await dynamoDB.update(dynamoDBUpdateParams).promise();
         logger.debug("DynamoDB entry updated");
 
-        res.status(200).send({message: "Package updated successfully"});
+        res.status(200).send({message: "Version is updated."});
     } catch (error) {
         logger.error("Error in PUT /package/:id", error);
         res.status(500).send({message: "Internal Server Error"});
@@ -587,7 +689,7 @@ app.delete('/reset', async (req, res) => {
             const scanResult = await dynamoDB.scan({TableName: 'S3Metadata'}).promise();
             if (scanResult.Items.length === 0) {
                 logger.debug("DynamoDB is also empty. No entries to delete.");
-                return res.status(200).send({message: "Registry is already reset."});
+                return res.status(200).send({message: "Registry is reset."});
             }
         }
 
@@ -725,14 +827,12 @@ async function emptyS3Bucket() {
 const fetchPackageGitHubURL = async (zipBuffer) => {
     logger.debug("Starting fetchPackageGitHubURL function");
     const zip = new AdmZip(zipBuffer);
-    const packageJsonEntry = zip.getEntry("package.json");
+    const packageJsonEntry = zip.getEntries().find(entry => entry.entryName.endsWith('package.json'));
 
     if (!packageJsonEntry) {
         logger.warn("package.json not found in the zip file");
         throw new Error("package.json not found in the zip file");
     }
-
-    const packageJsonContent = JSON.parse(packageJsonEntry.getData().toString('utf-8'));
 
     let gitHubURL;
     const repository = packageJsonContent.repository;

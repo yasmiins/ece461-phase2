@@ -17,21 +17,19 @@ export class DependencyPinningCalculator {
      * Fetches dependency data from the GitHub API.
      * @returns {Promise<any> | Promise<number>} A promise that resolves with the dependency data.
      */
-    async fetchDependencies(): Promise<any[] | number> {
+    async fetchDependencies(PackageJson: any): Promise<any[] | number> {
         try {
             // Retrieve the contents of the package.json file
-            const packageJsonContent = await this.githubAPI.fetchFileContent('package.json');
-
+            
+            const packageJsonContent = PackageJson;
+            
             if (!packageJsonContent) {
                 logger.warn("No package.json file found. Returning 0 for dependency pinning score.");
                 return 0;
             }
 
-            // Parse the JSON content to extract dependency information
-            const packageJson = JSON.parse(packageJsonContent);
-
             // Assuming dependencies are listed under the 'dependencies' field
-            const dependencies = packageJson.dependencies || {};
+            const dependencies = packageJsonContent.dependencies || {};
 
             // Convert dependencies object to an array of objects for consistency
             const dependenciesArray = Object.keys(dependencies).map(name => ({ name, version: dependencies[name] }));
@@ -47,12 +45,12 @@ export class DependencyPinningCalculator {
  * Calculates the fraction of dependencies that are pinned (have any version specified).
  * @returns {Promise<number>} The fraction of dependencies.
  */
-async calcPinnedDependenciesFraction(): Promise<number> {
+async calcPinnedDependenciesFraction(PackageJSON: any): Promise<number> {
     try {
-        const dependencies = await this.fetchDependencies();
+        const dependencies = await this.fetchDependencies(PackageJSON);
 
-        // Use type assertion to treat 'number' as an empty array
-        const dependenciesArray = dependencies as any[];
+        // Ensure dependencies is an array
+        const dependenciesArray = Array.isArray(dependencies) ? dependencies : [];
 
         // Filter dependencies that have any version specified
         const pinnedDependencies = dependenciesArray.filter((dep: any) => {
@@ -63,7 +61,7 @@ async calcPinnedDependenciesFraction(): Promise<number> {
 
         // Calculate the fraction of dependencies that have any version specified
         const pinnedDependenciesFraction = pinnedDependencies.length / dependenciesArray.length;
-
+        
         return pinnedDependenciesFraction || 1.0; // If no dependencies, return 1.0
     } catch (error) {
         logger.error(`Error calculating pinned dependencies fraction: ${error}`);
@@ -77,7 +75,7 @@ async calcPinnedDependenciesFraction(): Promise<number> {
      * @returns {number} The total dependency pinning score.
      */
     totalDependencyPinningScore(pinnedDependenciesFraction: number): number {
-        logger.info("Successfully calculated dependency pinning score");
+        logger.info(`Successfully calculated dependency pinning score: ${pinnedDependenciesFraction}`);
         return pinnedDependenciesFraction;
     }
 }

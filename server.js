@@ -682,6 +682,15 @@ app.post('/packages', async (req, res) => {
 app.delete('/reset', async (req, res) => {
     try {
         logger.info("Received request to /reset endpoint. Emptying S3 bucket...");
+
+        const authToken = req.headers['X-Authorization'];
+
+        // Check if the token is present and valid (in this case, "0" is a valid token)
+        if (authToken !== "0") {
+            // If the token is missing or not "0", return a 400 error
+            return res.status(400).send({ message: "Invalid Authentication token." });
+        }
+
         const listParams = {Bucket: '461zips'};
         const listedObjects = await s3.listObjectsV2(listParams).promise();
 

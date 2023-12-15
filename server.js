@@ -396,7 +396,6 @@ app.get('/package/:id', async (req, res) => {
         if (!s3Key) {
             return res.status(404).send({message: 'Package does not exist.'});
         }
-        console.log("2")
 
 
         // Retrieve object from S3
@@ -420,14 +419,10 @@ app.get('/package/:id', async (req, res) => {
             Version: data.Metadata['version'],
             ID: data.Metadata['id']
         };
-        console.log("5")
 
-        // Extract GitHub URL from package.json inside the zip
-        logger.debug(`Extracting GitHub URL from package.json inside the zip for package ${packageId}`);
-        console.log("6")
-
-        const gitHubURL = await fetchPackageGitHubURL(data.Body);
-        console.log("7")
+   
+        gitHubURL = "None"
+        
 
 
         // Prepare and send the package response
@@ -439,7 +434,6 @@ app.get('/package/:id', async (req, res) => {
                 JSProgram: "None"
             }
         };
-        console.log("8")
 
 
         logger.debug(`Package retrieved successfully for package ${packageId}`);

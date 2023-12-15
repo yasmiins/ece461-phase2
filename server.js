@@ -374,7 +374,7 @@ app.put('/package/:id', async (req, res) => {
         logger.info(`Received request to /package/:${req.params.id}`);
         const packageId = req.params.id;
         const {metadata, data} = req.body;
-        let tempDir, repoPath, zip, packageJson, packageName, packageVersion; //
+        let tempDir, repoPath, packageJson, packageName, packageVersion; //
 
         if (!metadata || !data) {
             logger.warn("Missing metadata or data in request");
@@ -442,8 +442,7 @@ app.put('/package/:id', async (req, res) => {
         repoPath = path.join(tempDir, 'repo');
         zip.extractAllTo(repoPath, true);
         
-        repoPath = path.join(tempDir, 'repo');
-        zip.extractAllTo(repoPath, true);
+
 
         
         logger.debug(`Extracted zip content to temporary repository path: ${repoPath}`);
@@ -453,6 +452,12 @@ app.put('/package/:id', async (req, res) => {
         fs.rmdirSync(tempDir, {recursive: true});
 
         //fix end
+
+        if (packageName !== metadata.Name) {
+        logger.warn("Package name mismatch");
+        return res.status(400).send({message: "Package name mismatch"});
+        }
+        
         
         // Update package in S3
         const s3Key = `packages/${metadata.Name}-${metadata.Version}.zip`;
@@ -512,7 +517,7 @@ app.put('/package/:id', async (req, res) => {
         await dynamoDB.update(dynamoDBUpdateParams).promise();
         logger.debug("DynamoDB entry updated");
 
-        res.status(200).send({message: "Package updated successfully"});
+        res.status(200).send({message: "Version is updated."});
     } catch (error) {
         logger.error("Error in PUT /package/:id", error);
         res.status(500).send({message: "Internal Server Error"});

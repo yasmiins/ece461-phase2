@@ -316,7 +316,16 @@ async function checkIfPackageExists(packageName, packageVersion) {
 // Define the API endpoint for retrieving packages
 app.get('/package/:id', async (req, res) => {
     try {
+        
+        const authToken = req.headers['x-authorization'];
+
+        // Check if the token is present and valid (in this case, "0" is a valid token)
+        if (!authToken) {
+            // If the token is missing or not "0", return a 400 error
+            return res.status(400).send({ message: "Invalid Authentication token." });
+        }
         const packageId = req.params.id;
+        
 
         // Get the S3 key from DynamoDB
         const s3Key = await getS3KeyFromDynamoDB(packageId);
@@ -393,7 +402,6 @@ app.get('/package/:id', async (req, res) => {
 
         const data = await s3.getObject(s3Params).promise();
         const packageContent = data.Body.toString();
-        console.log("4")
 
 
         // Extract metadata from S3 object
@@ -418,8 +426,7 @@ app.get('/package/:id', async (req, res) => {
             data: {
                 Content: packageContent,
                 URL: gitHubURL,
-                JSProgram: "if (process.argv.length === 7) { console.log('Success'); process.exit(0); } else " +
-                    "{ console.log('Failed'); process.exit(1); }"
+                JSProgram: "None"
             }
         };
         console.log("8")
@@ -441,6 +448,13 @@ app.get('/package/:id', async (req, res) => {
 app.put('/package/:id', async (req, res) => {
     try {
         logger.info(`Received request to /package/:${req.params.id}`);
+        const authToken = req.headers['x-authorization'];
+
+        // Check if the token is present and valid (in this case, "0" is a valid token)
+        if (!authToken) {
+            // If the token is missing or not "0", return a 400 error
+            return res.status(400).send({ message: "Invalid Authentication token." });
+        }
         const packageId = req.params.id;
         const {metadata, data} = req.body;
         console.log("1")
@@ -563,6 +577,13 @@ app.put('/package/:id', async (req, res) => {
 // Define the API endpoint for rating NPM packages
 app.get('/package/:id/rate', async (req, res) => {
     try {
+        const authToken = req.headers['x-authorization'];
+
+        // Check if the token is present and valid (in this case, "0" is a valid token)
+        if (!authToken) {
+            // If the token is missing or not "0", return a 400 error
+            return res.status(400).send({ message: "Invalid Authentication token." });
+        }
         const packageId = req.params.id;
 
         // Get the S3 key from DynamoDB

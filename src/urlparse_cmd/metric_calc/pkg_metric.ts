@@ -161,7 +161,8 @@ export class MetricScores {
     
     async getPinnedDependenciesFraction(): Promise<number> {
         try {
-            return await this.pinned_frac.calcPinnedDependenciesFraction(this.packageJSON);
+            const pinned_score = await this.pinned_frac.calcPinnedDependenciesFraction(this.packageJSON);
+            return await this.pinned_frac.totalDependencyPinningScore(pinned_score);
         } catch (error) {
             logger.error(`Error calculating pinned dependencies fraction: ${error}`);
             return 0;
@@ -170,7 +171,8 @@ export class MetricScores {
 
     async getCodeReviewFraction(): Promise<number> {
         try {
-            return await this.reviewed_pull_frac.calcCodeReviewFraction();
+            const review_score = await this.reviewed_pull_frac.calcCodeReviewFraction();
+            return await this.reviewed_pull_frac.totalCodeReviewScore(review_score);
         } catch (error) {
             logger.error(`Error calculating code review fraction: ${error}`);
             return 0;

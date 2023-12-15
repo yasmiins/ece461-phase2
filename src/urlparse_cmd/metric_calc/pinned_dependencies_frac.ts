@@ -75,7 +75,7 @@ async calcPinnedDependenciesFraction(PackageJSON: any): Promise<number> {
      * @returns {number} The total dependency pinning score.
      */
     totalDependencyPinningScore(pinnedDependenciesFraction: number): number {
-        logger.info("Successfully calculated dependency pinning score");
+        logger.info(`Successfully calculated dependency pinning score: ${pinnedDependenciesFraction}`);
         return pinnedDependenciesFraction;
     }
 }

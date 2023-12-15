@@ -679,7 +679,7 @@ app.delete('/reset', async (req, res) => {
             const scanResult = await dynamoDB.scan({TableName: 'S3Metadata'}).promise();
             if (scanResult.Items.length === 0) {
                 logger.debug("DynamoDB is also empty. No entries to delete.");
-                return res.status(200).send({message: "Registry is already reset."});
+                return res.status(200).send({message: "Registry is reset."});
             }
         }
 

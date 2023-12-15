@@ -595,16 +595,19 @@ app.get('/package/:id/rate', async (req, res) => {
         if (!scores) {
             return res.status(500).send({ message: 'Error computing package metrics.' });
         }
-        //end of error 
-        const netScore = scores.NET_SCORE;
-        const reviewedFracScore = scores.REVIEWED_FRAC_SCORE;
-
-        // Set NET_SCORE and REVIEWED_FRAC_SCORE to -1
-        scores.NET_SCORE = -1;
-        scores.REVIEWED_FRAC_SCORE = -1;
+        const packageMetrics = {
+          RampUp: scores.RAMP_UP || -1, // Set to -1 if undefined
+          Correctness: scores.CORRECTNESS || -1, // Set to -1 if undefined
+          BusFactor: scores.BUS_FACTOR || -1, // Set to -1 if undefined
+          ResponsiveMaintainer: scores.RESPONSIVE_MAINTAINER || -1, // Set to -1 if undefined
+          LicenseScore: scores.LICENSE_SCORE || -1, // Set to -1 if undefined
+          GoodPinningPractice: scores.GOOD_PINNING_PRACTICE || -1, // Set to -1 if undefined
+          PullRequest: scores.PULL_REQUEST || -1, // Set to -1 if undefined
+          NetScore: scores.NET_SCORE || -1, // Set to -1 if undefined
+        };
 
         //fix response
-        res.status(200).json(scores);
+        res.status(200).json(packageMetrics);
 
         // Cleanup temporary file
         fs.unlinkSync(tempFilePath);
@@ -747,10 +750,11 @@ app.post('/package/byRegEx', async (req, res) => {
         // List all packages from DynamoDB
         let scanParams = {
             TableName: "S3Metadata",
-            ProjectionExpression: "#n, #v",
+            ProjectionExpression: "#n, #v, #id",
             ExpressionAttributeNames: {
                 "#n": "name",
-                "#v": "version"
+                "#v": "version",
+                "#id": "id"
             }
         };
 
@@ -786,7 +790,12 @@ app.post('/package/byRegEx', async (req, res) => {
             }
 
             if (regex.test(readmeContent) || regex.test(pkg.name)) {
-                matchedPackages.push({ Version: pkg.version, Name: pkg.name });
+                 const packageMetadata = {
+                    Name: pkg.name,
+                    Version: pkg.version,
+                    ID: pkg.id
+                };
+                matchedPackages.push(packageMetadata);
                 logger.debug(`Package matched: ${pkg.name}-${pkg.version}`);
             }
         }

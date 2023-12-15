@@ -368,23 +368,96 @@ app.get('/package/:id', async (req, res) => {
     }
 });
 
+// Define the API endpoint for retrieving packages
+app.get('/package/:id', async (req, res) => {
+    try {
+        const packageId = req.params.id;
+
+        // Get the S3 key from DynamoDB
+        const s3Key = await getS3KeyFromDynamoDB(packageId);
+        if (!s3Key) {
+            return res.status(404).send({message: 'Package does not exist.'});
+        }
+        console.log("2")
+
+
+        // Retrieve object from S3
+        const s3Params = {
+            Bucket: '461zips',
+            Key: s3Key
+        };
+        console.log("2")
+
+        logger.debug(`Fetching package data from S3 for package ${packageId}`);
+        console.log("3")
+
+        const data = await s3.getObject(s3Params).promise();
+        const packageContent = data.Body.toString('base64');
+        console.log("4")
+
+
+        // Extract metadata from S3 object
+        const metadata = {
+            Name: data.Metadata['name'],
+            Version: data.Metadata['version'],
+            ID: data.Metadata['id']
+        };
+        console.log("5")
+
+        // Extract GitHub URL from package.json inside the zip
+        logger.debug(`Extracting GitHub URL from package.json inside the zip for package ${packageId}`);
+        console.log("6")
+
+        const gitHubURL = await fetchPackageGitHubURL(data.Body);
+        console.log("7")
+
+
+        // Prepare and send the package response
+        const response = {
+            metadata: metadata,
+            data: {
+                Content: packageContent,
+                URL: gitHubURL,
+                JSProgram: "if (process.argv.length === 7) { console.log('Success'); process.exit(0); } else " +
+                    "{ console.log('Failed'); process.exit(1); }"
+            }
+        };
+        console.log("8")
+
+
+        logger.debug(`Package retrieved successfully for package ${packageId}`);
+        res.status(200).json(response);
+    } catch (error) {
+        logger.error(`Error in GET /package/${req.params.id}`, error);
+        if (error.code === 'NoSuchKey') {
+            res.status(404).send({message: 'Package does not exist.'});
+        } else {
+            res.status(500).send({message: 'Internal Server Error'});
+        }
+    }
+});
+
 // Define the API endpoint for updating packages
 app.put('/package/:id', async (req, res) => {
     try {
         logger.info(`Received request to /package/:${req.params.id}`);
         const packageId = req.params.id;
         const {metadata, data} = req.body;
+        console.log("1")
+
 
         if (!metadata || !data) {
             logger.warn("Missing metadata or data in request");
             return res.status(400).send({ message: "Invalid request data: Metadata and data are required" });
         }
+        console.log("2")
 
         // Enhanced validation
         if (!metadata || !data || !metadata.Name || !metadata.Version  || !metadata.ID ) {
             logger.warn("Invalid request data: ", { metadata, data });
             return res.status(400).send({ message: "Invalid request data: Metadata and data are required with proper formats" });
         }
+        console.log("3")
 
         //metadata check
         const requiredMetadataFields = ["Name", "Version", "ID"];
@@ -401,15 +474,17 @@ app.put('/package/:id', async (req, res) => {
             TableName: 'S3Metadata',
             Key: {id: packageId}
         };
+        console.log("4")
+
 
         const result = await dynamoDB.get(dynamoDBGetParams).promise();
         if (!result.Item) {
             return res.status(404).send({message: 'Package does not exist.'});
         }
 
-
         logger.debug("Package exists. Updating...");
 
+        console.log("4")
 
         
         // Update package in S3
@@ -419,14 +494,18 @@ app.put('/package/:id', async (req, res) => {
             Key: s3Key,
             Body: Buffer.from(data.Content, 'base64'),
             Metadata: {
-                'name': metdata.Name, //
+                'name': metadata.Name, //
                 'version': metadata.Version, //
                 'id': metadata.ID
             }
         };
 
+
         await s3.upload(updateParams).promise();
+
         logger.debug("Package updated in S3");
+
+
 
         // update the readme content (probably might need fixing)
         const base64Content = data.Content;
@@ -434,7 +513,9 @@ app.put('/package/:id', async (req, res) => {
         const zip = new AdmZip(zipBuffer);
 
         // Extract and update the .md file in S3
+
         const readmeEntry = zip.getEntries().find(entry => entry.entryName.endsWith('.md'));
+
         if (readmeEntry) {
             const readmeContent = readmeEntry.getData().toString('utf8');
             const readmeS3Key = `readme/${metadata.Name}-${metadata.Version}.md`;
@@ -443,13 +524,15 @@ app.put('/package/:id', async (req, res) => {
                 Key: readmeS3Key,
                 Body: readmeContent,
                 Metadata: {
-                    'name': metdata.Name, //
+                    'name': metadata.Name, //
                     'version': metadata.Version,//
                     'id': metadata.ID
                 }
             };
 
             await s3.upload(readmeUpdateParams).promise();
+
+
 
             logger.debug("README updated in S3");
         } else {
@@ -738,14 +821,14 @@ async function emptyS3Bucket() {
 const fetchPackageGitHubURL = async (zipBuffer) => {
     logger.debug("Starting fetchPackageGitHubURL function");
     const zip = new AdmZip(zipBuffer);
-    const packageJsonEntry = zip.getEntry("package.json");
+    const packageJsonEntry = zip.getEntries().find(entry => entry.entryName.endsWith('package.json'));
 
     if (!packageJsonEntry) {
         logger.warn("package.json not found in the zip file");
         throw new Error("package.json not found in the zip file");
     }
 
-    const packageJsonContent = JSON.parse(packageJsonEntry.getData().toString('utf-8'));
+    const packageJsonEntry = zip.getEntries().find(entry => entry.entryName.endsWith('package.json'));
 
     let gitHubURL;
     const repository = packageJsonContent.repository;

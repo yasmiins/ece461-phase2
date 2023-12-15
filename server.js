@@ -832,7 +832,7 @@ const fetchPackageGitHubURL = async (zipBuffer) => {
     const packageJson = JSON.parse(packageJsonContent);
 
     let gitHubURL;
-    const repository = packageJsonEntry.repository;
+    const repository = packageJson.repository;
 
     if (typeof repository === 'string') {
         // Handle string format

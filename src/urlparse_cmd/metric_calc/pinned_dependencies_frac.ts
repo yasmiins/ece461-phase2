@@ -17,11 +17,12 @@ export class DependencyPinningCalculator {
      * Fetches dependency data from the GitHub API.
      * @returns {Promise<any> | Promise<number>} A promise that resolves with the dependency data.
      */
-    async fetchDependencies(): Promise<any[] | number> {
+    async fetchDependencies(PackageJson: any): Promise<any[] | number> {
         try {
             // Retrieve the contents of the package.json file
-            const packageJsonContent = await this.githubAPI.fetchFileContent('package.json');
-
+            
+            const packageJsonContent = PackageJson;
+            
             if (!packageJsonContent) {
                 logger.warn("No package.json file found. Returning 0 for dependency pinning score.");
                 return 0;
@@ -47,9 +48,9 @@ export class DependencyPinningCalculator {
  * Calculates the fraction of dependencies that are pinned (have any version specified).
  * @returns {Promise<number>} The fraction of dependencies.
  */
-async calcPinnedDependenciesFraction(): Promise<number> {
+async calcPinnedDependenciesFraction(PackageJSON: any): Promise<number> {
     try {
-        const dependencies = await this.fetchDependencies();
+        const dependencies = await this.fetchDependencies(PackageJSON);
 
         // Ensure dependencies is an array
         const dependenciesArray = Array.isArray(dependencies) ? dependencies : [];
@@ -63,7 +64,7 @@ async calcPinnedDependenciesFraction(): Promise<number> {
 
         // Calculate the fraction of dependencies that have any version specified
         const pinnedDependenciesFraction = pinnedDependencies.length / dependenciesArray.length;
-
+        
         return pinnedDependenciesFraction || 1.0; // If no dependencies, return 1.0
     } catch (error) {
         logger.error(`Error calculating pinned dependencies fraction: ${error}`);

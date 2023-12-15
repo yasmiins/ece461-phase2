@@ -828,6 +828,9 @@ const fetchPackageGitHubURL = async (zipBuffer) => {
         throw new Error("package.json not found in the zip file");
     }
 
+    const packageJsonContent = packageJsonEntry.getData().toString('utf8');
+    const packageJson = JSON.parse(packageJsonContent);
+
     let gitHubURL;
     const repository = packageJsonEntry.repository;
 

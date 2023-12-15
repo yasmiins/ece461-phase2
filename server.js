@@ -450,14 +450,12 @@ app.put('/package/:id', async (req, res) => {
             logger.warn("Missing metadata or data in request");
             return res.status(400).send({ message: "Invalid request data: Metadata and data are required" });
         }
-        console.log("2")
 
         // Enhanced validation
         if (!metadata || !data || !metadata.Name || !metadata.Version  || !metadata.ID ) {
             logger.warn("Invalid request data: ", { metadata, data });
             return res.status(400).send({ message: "Invalid request data: Metadata and data are required with proper formats" });
         }
-        console.log("3")
 
         //metadata check
         const requiredMetadataFields = ["Name", "Version", "ID"];
@@ -474,7 +472,6 @@ app.put('/package/:id', async (req, res) => {
             TableName: 'S3Metadata',
             Key: {id: packageId}
         };
-        console.log("4")
 
 
         const result = await dynamoDB.get(dynamoDBGetParams).promise();
@@ -484,7 +481,6 @@ app.put('/package/:id', async (req, res) => {
 
         logger.debug("Package exists. Updating...");
 
-        console.log("4")
 
         
         // Update package in S3
@@ -827,8 +823,6 @@ const fetchPackageGitHubURL = async (zipBuffer) => {
         logger.warn("package.json not found in the zip file");
         throw new Error("package.json not found in the zip file");
     }
-
-    const packageJsonEntry = zip.getEntries().find(entry => entry.entryName.endsWith('package.json'));
 
     let gitHubURL;
     const repository = packageJsonContent.repository;

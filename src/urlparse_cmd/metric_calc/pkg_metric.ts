@@ -161,7 +161,7 @@ export class MetricScores {
     
     async getPinnedDependenciesFraction(): Promise<number> {
         try {
-            return await this.pinned_frac.calcPinnedDependenciesFraction();
+            return await this.pinned_frac.calcPinnedDependenciesFraction(this.packageJSON);
         } catch (error) {
             logger.error(`Error calculating pinned dependencies fraction: ${error}`);
             return 0;

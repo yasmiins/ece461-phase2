@@ -392,7 +392,7 @@ app.get('/package/:id', async (req, res) => {
         console.log("3")
 
         const data = await s3.getObject(s3Params).promise();
-        const packageContent = data.Body.toString('base64');
+        const packageContent = data.Body.toString();
         console.log("4")
 
 
@@ -683,10 +683,10 @@ app.delete('/reset', async (req, res) => {
     try {
         logger.info("Received request to /reset endpoint. Emptying S3 bucket...");
 
-        const authToken = req.headers['X-Authorization'];
+        const authToken = req.headers['x-authorization'];
 
         // Check if the token is present and valid (in this case, "0" is a valid token)
-        if (authToken !== "0") {
+        if (!authToken) {
             // If the token is missing or not "0", return a 400 error
             return res.status(400).send({ message: "Invalid Authentication token." });
         }

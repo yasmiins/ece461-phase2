@@ -56,7 +56,7 @@ export class CodeReviewFractionCalculator {
      * @returns {number} The total code review score.
      */
     totalCodeReviewScore(codeReviewFraction: number): number {
-        logger.info("Successfully calculated code review score");
+        logger.info(`Successfully calculated code review score: ${codeReviewFraction}`);
         // You can customize the weights based on your specific criteria
         return codeReviewFraction;
     }

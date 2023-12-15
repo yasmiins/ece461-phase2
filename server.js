@@ -381,6 +381,13 @@ app.get('/package/:id', async (req, res) => {
 app.get('/package/:id', async (req, res) => {
     try {
         const packageId = req.params.id;
+        const authToken = req.headers['X-authorization'];
+
+        // Check if the token is present and valid (in this case, "0" is a valid token)
+        if (!authToken) {
+            // If the token is missing or not "0", return a 400 error
+            return res.status(400).send({ message: "Invalid Authentication token." });
+        }
 
         // Get the S3 key from DynamoDB
         const s3Key = await getS3KeyFromDynamoDB(packageId);
@@ -401,7 +408,7 @@ app.get('/package/:id', async (req, res) => {
         console.log("3")
 
         const data = await s3.getObject(s3Params).promise();
-        const packageContent = data.Body.toString();
+        const packageContent = data.Body.toString("base64");
 
 
         // Extract metadata from S3 object
@@ -448,7 +455,7 @@ app.get('/package/:id', async (req, res) => {
 app.put('/package/:id', async (req, res) => {
     try {
         logger.info(`Received request to /package/:${req.params.id}`);
-        const authToken = req.headers['x-authorization'];
+        const authToken = req.headers['X-authorization'];
 
         // Check if the token is present and valid (in this case, "0" is a valid token)
         if (!authToken) {
@@ -577,13 +584,7 @@ app.put('/package/:id', async (req, res) => {
 // Define the API endpoint for rating NPM packages
 app.get('/package/:id/rate', async (req, res) => {
     try {
-        const authToken = req.headers['x-authorization'];
-
-        // Check if the token is present and valid (in this case, "0" is a valid token)
-        if (!authToken) {
-            // If the token is missing or not "0", return a 400 error
-            return res.status(400).send({ message: "Invalid Authentication token." });
-        }
+   
         const packageId = req.params.id;
 
         // Get the S3 key from DynamoDB
@@ -649,6 +650,14 @@ app.post('/packages', async (req, res) => {
         logger.debug("Validating request body");
         if (!Array.isArray(packageQueries) || packageQueries.length === 0) {
             return res.status(400).send({message: "Invalid request body"});
+        }
+
+        const authToken = req.headers['X-authorization'];
+
+        // Check if the token is present and valid (in this case, "0" is a valid token)
+        if (!authToken) {
+            // If the token is missing or not "0", return a 400 error
+            return res.status(400).send({ message: "Invalid Authentication token." });
         }
 
 

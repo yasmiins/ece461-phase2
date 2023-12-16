@@ -615,13 +615,13 @@ app.get('/package/:id/rate', async (req, res) => {
             return res.status(500).send({ message: 'Error computing package metrics.' });
         }
         const packageMetrics = {
-          RampUp: scores.RAMP_UP || -1, // Set to -1 if undefined
-          Correctness: scores.CORRECTNESS || -1, // Set to -1 if undefined
-          BusFactor: scores.BUS_FACTOR || -1, // Set to -1 if undefined
-          ResponsiveMaintainer: scores.RESPONSIVE_MAINTAINER || -1, // Set to -1 if undefined
+          RampUp: scores.RAMP_UP_SCORE || -1, // Set to -1 if undefined
+          Correctness: scores.CORRECTNESS_SCORE || -1, // Set to -1 if undefined
+          BusFactor: scores.BUS_FACTOR_SCORE || -1, // Set to -1 if undefined
+          ResponsiveMaintainer: scores.RESPONSIVE_MAINTAINER_SCORE || -1, // Set to -1 if undefined
           LicenseScore: scores.LICENSE_SCORE || -1, // Set to -1 if undefined
-          GoodPinningPractice: scores.GOOD_PINNING_PRACTICE || -1, // Set to -1 if undefined
-          PullRequest: scores.PULL_REQUEST || -1, // Set to -1 if undefined
+          GoodPinningPractice: scores.PINNED_FRAC_SCORE || -1, // Set to -1 if undefined
+          PullRequest: scores.REVIEWED_FRAC_SCORE || -1, // Set to -1 if undefined
           NetScore: scores.NET_SCORE || -1, // Set to -1 if undefined
         };
 

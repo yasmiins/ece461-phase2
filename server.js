@@ -614,6 +614,8 @@ app.get('/package/:id/rate', async (req, res) => {
         if (!scores) {
             return res.status(500).send({ message: 'Error computing package metrics.' });
         }
+        const firstScore = scores[0];
+
         const packageMetrics = {
           RampUp: scores.RAMP_UP_SCORE || -1, // Set to -1 if undefined
           Correctness: scores.CORRECTNESS_SCORE || -1, // Set to -1 if undefined

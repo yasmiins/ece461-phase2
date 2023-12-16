@@ -617,14 +617,14 @@ app.get('/package/:id/rate', async (req, res) => {
         const firstScore = scores[0];
 
         const packageMetrics = {
-          RampUp: scores.RAMP_UP_SCORE || -1, // Set to -1 if undefined
-          Correctness: scores.CORRECTNESS_SCORE || -1, // Set to -1 if undefined
-          BusFactor: scores.BUS_FACTOR_SCORE || -1, // Set to -1 if undefined
-          ResponsiveMaintainer: scores.RESPONSIVE_MAINTAINER_SCORE || -1, // Set to -1 if undefined
-          LicenseScore: scores.LICENSE_SCORE || -1, // Set to -1 if undefined
-          GoodPinningPractice: scores.PINNED_FRAC_SCORE || -1, // Set to -1 if undefined
-          PullRequest: scores.REVIEWED_FRAC_SCORE || -1, // Set to -1 if undefined
-          NetScore: scores.NET_SCORE || -1, // Set to -1 if undefined
+          RampUp: firstScore.RAMP_UP_SCORE || -1, // Set to -1 if undefined
+          Correctness: firstScore.CORRECTNESS_SCORE || -1, // Set to -1 if undefined
+          BusFactor: firstScore.BUS_FACTOR_SCORE || -1, // Set to -1 if undefined
+          ResponsiveMaintainer: firstScore.RESPONSIVE_MAINTAINER_SCORE || -1, // Set to -1 if undefined
+          LicenseScore: firstScore.LICENSE_SCORE || -1, // Set to -1 if undefined
+          GoodPinningPractice: firstScore.PINNED_FRAC_SCORE || -1, // Set to -1 if undefined
+          PullRequest: firstScore.REVIEWED_FRAC_SCORE || -1, // Set to -1 if undefined
+          NetScore: firstScore.NET_SCORE || -1, // Set to -1 if undefined
         };
 
         //fix response

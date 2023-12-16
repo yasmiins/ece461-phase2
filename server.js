@@ -382,13 +382,13 @@ app.get('/package/:id', async (req, res) => {
 app.get('/package/:id', async (req, res) => {
     try {
         const packageId = req.params.id;
-        const authToken = req.headers['x-authorization'];
+        // const authToken = req.headers['x-authorization'];
 
-        // Check if the token is present and valid (in this case, "0" is a valid token)
-        if (!authToken) {
-            // If the token is missing or not "0", return a 400 error
-            return res.status(400).send({ message: "Invalid Authentication token." });
-        }
+        // // Check if the token is present and valid (in this case, "0" is a valid token)
+        // if (!authToken) {
+        //     // If the token is missing or not "0", return a 400 error
+        //     return res.status(400).send({ message: "Invalid Authentication token." });
+        // }
 
 
         // Get the S3 key from DynamoDB
